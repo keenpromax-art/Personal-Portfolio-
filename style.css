@@ -131,9 +131,6 @@ section.block{padding-block:clamp(44px,6vw,88px);border-bottom:1px solid var(--l
 .analyst-lede{font:500 clamp(21px,2.4vw,30px)/1.3 var(--serif);letter-spacing:-.015em;margin:0 0 18px}
 .analyst-body{font-size:16px;line-height:1.7;color:var(--ink-2);max-width:60ch}
 .analyst-body p{margin:0 0 14px}
-.epigraph{border-top:2px solid var(--ink);border-bottom:1px solid var(--line);padding:16px 2px;margin:22px 0}
-.epigraph p{font:italic 500 clamp(17px,1.8vw,22px)/1.35 var(--serif);margin:0;color:var(--ink)}
-.epigraph cite{display:block;font:600 11px var(--sans);letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-top:10px;font-style:normal}
 .history{margin-top:6px;border-top:2px solid var(--ink)}
 .history-row{display:grid;grid-template-columns:96px 1fr 1.4fr;gap:16px;padding:12px 4px;border-bottom:1px solid var(--line-soft);align-items:baseline}
 .history-detail{display:grid;grid-template-columns:96px 1fr;gap:16px;padding:2px 4px 14px;border-bottom:1px solid var(--line-soft);align-items:baseline}
