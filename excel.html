@@ -1,0 +1,1449 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f4ec">
+<meta name="description" content="Keen Victor — interactive Excel models you can open, recalculate and poke at in the browser. Apollo Hospitals financial model with live scenario switching.">
+<title>Excel Models — Keen Victor</title>
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Spectral:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+
+.models-section{padding-block:clamp(40px,6vw,80px);border-bottom:1px solid var(--line)}
+.models-rail{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,320px),1fr));gap:clamp(12px,1.7vw,24px);margin-top:clamp(24px,4vw,44px)}
+.model-card{border:1px solid var(--ink);background:#e9e4d9;display:flex;flex-direction:column;text-align:left;cursor:pointer;transition:box-shadow .25s;padding:0;font-family:inherit}
+.model-card:hover{box-shadow:var(--shadow)}
+.model-card[aria-pressed="true"]{outline:2px solid var(--red);box-shadow:var(--shadow-sm)}
+.model-card .mc-top{display:flex;justify-content:space-between;align-items:center;gap:14px;border-bottom:1px solid var(--ink);padding:14px 16px;background:var(--ink);color:var(--paper)}
+.model-card .mc-file{font:500 12px var(--mono);letter-spacing:.02em;word-break:break-all}
+.model-card .mc-badge{font:700 11px var(--sans);text-transform:uppercase;letter-spacing:.14em;background:var(--red);color:var(--paper);padding:5px 10px;white-space:nowrap}
+.model-card .mc-body{padding:18px 16px 16px;display:flex;flex-direction:column;gap:10px;flex:1}
+.model-card h3{font:500 clamp(22px,2.6vw,32px)/1.05 var(--display);letter-spacing:-.05em;margin:0}
+.model-card p{margin:0;font-size:13px;line-height:1.65;color:#55564f}
+
+.workbook-zone{padding-block:clamp(40px,6vw,80px) clamp(60px,8vw,110px)}
+.wb{border:1px solid var(--ink);background:#ffffff;box-shadow:var(--ra-shadow)}
+.wb-toolbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;background:var(--paper2);border-bottom:1px solid var(--ink);padding:10px 14px}
+.wb-file{display:flex;align-items:center;gap:10px;min-width:0}
+.wb-file .dot{width:9px;height:9px;border-radius:50%;background:var(--green);flex:none}
+.wb-file .dot.edited{background:var(--red)}
+.wb-file .name{font:500 12px var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:30vw}
+.wb-file .sub{font:500 12px var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.wb-spacer{flex:1}
+
+.mode-toggle{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--ink);background:var(--paper);padding:9px 14px 9px 11px;font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.07em;cursor:pointer;border-radius:2px;transition:background .2s,color .2s;white-space:nowrap}
+.mode-toggle .pencil{width:14px;height:14px;flex:none}
+.mode-toggle .mode-state{display:inline-block;min-width:58px;text-align:left}
+.mode-toggle[aria-pressed="true"]{background:var(--green);border-color:var(--green);color:var(--paper)}
+.mode-toggle:hover{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.mode-toggle[aria-pressed="true"]:hover{background:#1a4030;border-color:#1a4030;color:var(--paper)}
+
+.scenario{display:flex;border:1px solid var(--ink);border-radius:2px;overflow:hidden}
+.scenario button{border:0;background:transparent;padding:10px 14px;font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.08em;cursor:pointer;border-right:1px solid var(--ink)}
+.scenario button:last-child{border-right:0}
+.scenario button[aria-pressed="true"]{background:var(--green);color:var(--paper)}
+.wb-btn{border:1px solid var(--ink);background:var(--paper);padding:9px 14px;font:600 11px var(--mono);text-transform:uppercase;letter-spacing:.07em;cursor:pointer;border-radius:2px;transition:background .2s,color .2s;display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:inherit}
+.wb-btn:hover{background:var(--ink);color:var(--paper)}
+.wb-btn[disabled]{opacity:.4;pointer-events:none}
+.wb-btn.primary{background:var(--red);color:var(--paper)}.wb-btn.primary:hover{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+.wb-btn.primary:hover{background:var(--ink)}
+
+.formula-bar{display:grid;grid-template-columns:180px 1fr;border-bottom:1px solid var(--ink);background:#fdfcf8;font:12px var(--mono)}
+.formula-addr{padding:9px 12px;border-right:1px solid var(--line);display:flex;align-items:center;gap:8px;color:var(--muted);white-space:nowrap;overflow:hidden}
+.formula-addr b{color:var(--ink);font-weight:500}
+.formula-content{display:flex;align-items:stretch;min-width:0}
+.formula-fx{display:flex;align-items:center;padding:0 14px;color:var(--red);font-style:italic;font-family:Georgia,serif;font-size:15px;flex:none;border:0;background:transparent;cursor:pointer;border-right:1px solid var(--line);transition:background .2s}
+.formula-fx:hover{background:var(--red-wash)}
+.formula-fx[aria-expanded="true"]{background:var(--red-wash)}
+.wb-mid{position:relative}
+.fx-panel{position:absolute;top:calc(100% + 6px);left:0;z-index:30;width:min(680px,96%);background:var(--paper);border:1px solid var(--ink);box-shadow:var(--shadow)}
+.fx-search{display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--line);padding:10px 14px}
+.fx-search input{flex:1;border:0;background:transparent;font:13px var(--mono);outline:none;color:var(--ink)}
+.fx-search .fx-count{font:500 11px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);white-space:nowrap}
+.fx-list{max-height:340px;overflow-y:auto;display:grid;grid-template-columns:repeat(2,1fr)}
+.fx-item{display:flex;flex-direction:column;gap:2px;text-align:left;border:0;border-right:1px solid #e3e1da;border-bottom:1px solid #e3e1da;background:transparent;padding:10px 14px;cursor:pointer;font-family:inherit;transition:background .15s}
+.fx-item:hover{background:var(--red-wash)}
+.fx-item .fx-name{font:500 12px var(--mono);color:var(--red);letter-spacing:.04em}
+.fx-item .fx-sig{font:500 11px var(--mono);color:#45423a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fx-item .fx-desc{font-size:12px;color:var(--muted);line-height:1.4}
+.fx-foot{border-top:1px solid var(--line);padding:9px 14px;font:500 10px var(--mono);text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+@media(max-width:760px){.fx-list{grid-template-columns:1fr}}
+.formula-input{flex:1;min-width:0;border:0;background:transparent;font:inherit;padding:9px 4px;outline:none;color:var(--ink)}
+.formula-input[readonly]{cursor:default;color:#55564f}
+.formula-input:not([readonly]):focus{background:var(--paper-2);box-shadow:inset 0 -2px 0 var(--red)}
+.formula-input::placeholder{color:#6f6c61}
+.formula-input.fb-invalid{background:#fdf0ec;box-shadow:inset 0 -2px 0 #b3341e}
+table.xl td.pick{outline:2px dashed var(--red);outline-offset:-2px;background:rgba(163,51,39,.08)!important}
+.grid-wrap.pick-mode td[data-addr]{cursor:crosshair}
+
+.grid-wrap{overflow:auto;max-height:min(66vh,640px);background:#ffffff;position:relative;outline:none}
+.grid-wrap:focus-visible{box-shadow:inset 0 0 0 2px var(--red)}
+table.xl{border-collapse:collapse;font:12px/1.35 var(--sans);width:max-content;min-width:100%}
+table.xl th,table.xl td{border:1px solid #e3e1da;padding:4px 7px;white-space:nowrap;height:26px}
+table.xl thead th{position:sticky;top:0;z-index:5;background:#f3f2ec;border-bottom:1px solid #c9c7bd;color:#6d6c64;font:9px var(--mono);font-weight:400;text-align:center;padding:5px 4px;letter-spacing:.05em}
+table.xl tbody th{position:sticky;left:0;z-index:4;background:#f3f2ec;border-right:1px solid #c9c7bd;color:#6d6c64;font:9px var(--mono);font-weight:400;text-align:center;padding:4px 8px}
+table.xl thead th.corner{left:0;z-index:6;width:38px}
+table.xl td.num{text-align:right;font-variant-numeric:tabular-nums}
+table.xl td.center{text-align:center}
+table.xl td{cursor:cell;user-select:none}
+table.xl td.xl-err{color:#b3341e;font-family:var(--mono);font-size:10px;background:#fdf0ec}
+table.xl td.sel{outline:2px solid var(--red);outline-offset:-2px;position:relative;z-index:1}
+table.xl td.editing{padding:0;outline:2px solid var(--red);outline-offset:-2px;position:relative;z-index:2}
+.cell-editor{position:absolute;inset:0;border:0;background:#ffffff;font:inherit;font-variant-numeric:tabular-nums;text-align:left;padding:4px 7px;outline:none;color:var(--ink);width:100%;height:100%}
+.cell-editor.invalid{background:#fdf0ec;color:#b3341e}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-3px)}75%{transform:translateX(3px)}}
+.cell-editor.shake{animation:shake .18s ease-in-out}
+td.xl-input-cell{background:#fff9db!important}
+td.xl-calc-cell{background:#eef3fa}
+td.xl-head-cell{font-weight:600}
+td a.xl-link{color:#0b5394;text-decoration:underline}
+
+
+
+.tab-bar{display:flex;overflow-x:auto;border-top:1px solid var(--ink);background:#eceae2;scrollbar-width:thin}
+.tab{flex:0 0 auto;border:0;border-right:1px solid #d8d6cc;background:transparent;padding:11px 14px;font:500 11px var(--mono);letter-spacing:.01em;cursor:pointer;border-bottom:2px solid transparent;color:#45423a;transition:color .2s,border-color .2s,background .2s;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tab:hover{background:#e2e0d6;color:var(--ink)}
+.tab[aria-selected="true"]{background:#ffffff;border-bottom:2px solid var(--red);color:var(--ink);font-weight:500}
+.tab:focus-visible{outline:2px solid var(--red);outline-offset:-2px}
+
+.wb-status{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;border-top:1px solid var(--ink);background:var(--paper2);padding:9px 14px;font:500 12px var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.wb-status b{color:var(--ink);font-weight:500}
+.mode-pill{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);padding:3px 9px;border-radius:2px;margin-right:10px}
+.mode-pill .pill-dot{width:6px;height:6px;border-radius:50%;background:#a8a69d}
+.mode-pill.on{background:var(--green);border-color:var(--green);color:var(--paper)}
+.mode-pill.on .pill-dot{background:#8ee3b0}
+.save-hint{color:var(--green);font-weight:500;opacity:0;transition:opacity .25s}
+.save-hint.show{opacity:1}
+
+.wb-loading,.wb-error{padding:70px 24px;text-align:center;font:500 12px var(--mono);text-transform:uppercase;letter-spacing:.12em;color:var(--muted)}
+.wb-error{color:#b3341e}
+
+.xl-foot{background:var(--ink);color:var(--paper);margin-top:0}.xl-foot-inner{display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap;padding-block:18px;font:500 12px var(--mono);letter-spacing:.09em;text-transform:uppercase;color:#9d9a8f}.xl-foot-inner a{color:#c9c6bb}.xl-foot-inner a:hover{color:#e8c9bd}
+
+
+button:focus-visible,a:focus-visible,input:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+
+@media(max-width:900px){
+  .wb-file .name{max-width:60vw}
+  .formula-bar{grid-template-columns:110px 1fr}
+  .grid-wrap{max-height:56vh}
+}
+@media(max-width:620px){
+  .section-top{flex-direction:column;align-items:flex-start;gap:8px}
+  .section-small{align-self:flex-start}
+  .wb-toolbar{gap:8px;padding:10px}
+  .wb-file{flex-basis:100%}
+  .wb-file .name{max-width:78vw}
+  .scenario{order:3;flex-basis:100%}
+  .scenario button{flex:1}
+  .wb-status{font-size:11px}
+}
+@media(max-width:820px){
+  .formula-input,.fx-search input,.cell-editor{font-size:16px}
+}
+@media(pointer:coarse){
+  .scenario button,.mode-toggle,.wb-btn,.tab,.formula-fx{min-height:44px}
+}
+</style>
+</head>
+<body><a class="skip-link" href="#workbook">Skip to workbook</a>
+<div class="shell">
+<header class="site" id="top">
+  <div class="shell site-bar">
+    <a class="brand" href="index.html" aria-label="Keen Victor — home">
+      <span class="wordmark">Keen<b>&nbsp;</b>Victor</span>
+      <small>Development &amp; Finance Tooling</small>
+    </a>
+    <nav class="nav" id="mainNav" aria-label="Main navigation"><a href="index.html">Home</a><a href="index.html#works">Work</a><a href="excel.html" class="active" aria-current="page">Excel</a><a href="index.html#capabilities">Services</a><a class="cta-nav js-convo" href="#" aria-haspopup="true" aria-expanded="false">Start a conversation</a></nav>
+    <button class="menu-toggle" id="menuToggle" aria-label="Open navigation" aria-expanded="false">≡</button>
+  </div>
+</header>
+<main>
+<div class="shell">
+<section class="models-section" id="models" aria-label="Excel model library">
+  <div class="section-top section-head section-flush">
+    <h2 class="section-index"><b>XL.1 /</b> MODEL LIBRARY</h2>
+    <div class="section-small">Pick a workbook</div>
+  </div>
+  <div class="models-rail" id="modelsRail"></div>
+</section>
+</div>
+
+<div class="shell">
+<section class="workbook-zone" id="workbook" aria-label="Interactive workbook viewer">
+  <div class="section-top section-head">
+    <h2 class="section-index"><b>XL.2 /</b> LIVE WORKBOOK</h2>
+    <div class="section-small" id="wbSectionSmall">Loading workbook…</div>
+  </div>
+
+  <div class="wb" id="wbRoot">
+    <div class="wb-toolbar">
+      <div class="wb-file">
+        <span class="dot" id="editedDot" title="Unedited — as saved"></span>
+        <div>
+          <div class="name" id="wbFileName">APOLLOHOSP.NS_financial_model.xlsx</div>
+          <div class="sub"><span id="wbEditedLabel">Original · unedited</span></div>
+        </div>
+      </div>
+      <div class="wb-spacer"></div>
+      <button class="mode-toggle" id="modeToggle" type="button" aria-pressed="false" title="Toggle Editing mode — one switch, like desktop Office">
+        <svg class="pencil" viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M11.3 2.7a1.6 1.6 0 0 1 2.3 2.3L6 12.6l-3.2.9.9-3.2 7.6-7.6Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>
+        <span class="mode-state" id="modeToggleLabel">Viewing</span>
+      </button>
+      <div class="scenario" role="group" aria-label="Scenario switch — sets Assumptions!B2">
+        <button type="button" data-scenario="1" aria-pressed="true">Base</button>
+        <button type="button" data-scenario="2" aria-pressed="false">Bull</button>
+        <button type="button" data-scenario="3" aria-pressed="false">Bear</button>
+      </div>
+      <button class="wb-btn" id="resetBtn" type="button" disabled>Reset</button>
+      <button class="wb-btn primary" id="saveBtn" type="button" title="Download a copy with your edits applied. Charts aren't carried over — use Original for the pristine file.">Save .xlsx ↗</button>
+      <a class="wb-btn" id="downloadOriginal" href="assets/excel/APOLLOHOSP.NS_financial_model.xlsx" download title="The untouched source workbook, with charts">Original ↓</a>
+    </div>
+
+    <div class="wb-mid">
+      <div class="formula-bar">
+        <div class="formula-addr"><span>Cell</span><b id="formulaAddr">—</b></div>
+        <div class="formula-content"><button class="formula-fx" id="fxBtn" type="button" aria-expanded="false" aria-controls="fxPanel" title="Insert a function — SUM, IF, VLOOKUP and 60 more">Æ’x</button><input id="formulaInput" class="formula-input" type="text" spellcheck="false" autocomplete="off" placeholder="Select any cell to inspect or edit it" readonly aria-label="Formula bar"></div>
+      </div>
+      <div class="fx-panel" id="fxPanel" hidden role="dialog" aria-label="Insert function">
+        <div class="fx-search"><input id="fxSearch" type="text" placeholder="Search 60+ functions — SUM, IF, VLOOKUP…" spellcheck="false" autocomplete="off" aria-label="Search functions"><span class="fx-count" id="fxCount"></span></div>
+        <div class="fx-list" id="fxList" role="listbox" aria-label="Function list"></div>
+        <div class="fx-foot">Engine-supported functions · click to insert at the cursor</div>
+      </div>
+    </div>
+
+    <div class="grid-wrap" id="gridWrap" role="region" aria-label="Spreadsheet grid" tabindex="0">
+      <div class="wb-loading" id="wbLoading">Loading workbook…</div>
+    </div>
+
+    <div class="tab-bar" id="tabBar" role="tablist" aria-label="Worksheet tabs"></div>
+
+    <div class="wb-status">
+      <span><span class="mode-pill" id="modePill"><span class="pill-dot"></span><span id="modePillText">Viewing</span></span>Sheets / <b id="statSheets">–</b> &nbsp;·&nbsp; Formulas live / <b id="statFormulas">–</b> &nbsp;·&nbsp; Edits / <b id="statEdits">0</b> &nbsp;<span class="save-hint" id="saveHint">Saved</span></span>
+      <span>Ctrl+Z undo &nbsp;·&nbsp; Ctrl+S save &nbsp;·&nbsp; F2 edit &nbsp;·&nbsp; Del clear</span>
+    </div>
+  </div>
+
+
+</section>
+</div>
+</main>
+
+<footer class="xl-foot">
+  <div class="shell xl-foot-inner">
+    <span>© <span id="year"></span> Keen Victor — Independent development &amp; finance tooling</span>
+    <span><a href="index.html">Home ↗</a> &nbsp;·&nbsp; <a href="mailto:keennayak065@gmail.com">keennayak065@gmail.com ↗</a></span>
+    <span>Models recalc live in your browser</span>
+  </div>
+</footer>
+
+<a class="back-top" href="#top" aria-label="Back to top">↑</a>
+
+<div class="convo-pop" id="convoPop" role="dialog" aria-label="Choose a channel">
+  <div class="cp-title"><span>Choose a channel</span><b>Replies in 24–48h</b></div>
+  <a href="https://www.instagram.com/keen_victor_/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5.25"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1.1" fill="currentColor" stroke="none"/></svg><span><strong>Instagram</strong><span class="cp-sub">@keen_victor_</span></span></a>
+  <a href="https://wa.me/916300641611" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 11.6A8.5 8.5 0 0 1 7.2 17.6L3.5 19l1.5-3.6A8.5 8.5 0 1 1 20.5 11.6Z"/><path d="M9.5 9.2c.3 1.5 1.6 2.9 3.1 3.3l.9-.7c.2-.2.5-.2.8 0l1.2.8c.3.2.4.6.3 1-.3 1-1.4 1.6-2.3 1.4-2.6-.5-6.1-3.9-6.4-6.6-.1-1 .7-2.1 1.8-2.3.4-.1.8.1 1 .4l.7 1.2c.2.3.2.7 0 1l-.8.9Z" fill="currentColor" stroke="none"/></svg><span><strong>WhatsApp</strong><span class="cp-sub">+91 63006 41611</span></span></a>
+  <a href="https://www.linkedin.com/in/keen-victor/" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3.5"/><path d="M8.5 11.2V17M8.5 8v.01M12.5 17v-3.5a2.1 2.1 0 0 1 4.2 0V17"/></svg><span><strong>LinkedIn</strong><span class="cp-sub">in/keen-victor</span></span></a>
+  <a href="https://mail.google.com/mail/?view=cm&fs=1&to=keennayak065@gmail.com" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5.5" width="18" height="13" rx="2"/><path d="m4.5 7.5 7.5 5.7 7.5-5.7"/></svg><span><strong>Gmail</strong><span class="cp-sub">keennayak065@gmail.com</span></span></a>
+</div>
+<script>
+(function () {
+  var pop = document.getElementById('convoPop');
+  if (!pop) return;
+  var triggers = document.querySelectorAll('.js-convo');
+  var currentTrigger = null;
+  function closeConvo() {
+    pop.classList.remove('open');
+    triggers.forEach(function (t) { t.setAttribute('aria-expanded', 'false'); });
+    currentTrigger = null;
+  }
+  function openConvo(btn) {
+    triggers.forEach(function (t) { t.setAttribute('aria-expanded', t === btn ? 'true' : 'false'); });
+    pop.classList.add('open');
+    currentTrigger = btn;
+    var r = btn.getBoundingClientRect();
+    var pw = pop.offsetWidth, ph = pop.offsetHeight;
+    var top = r.bottom + 10;
+    if (top + ph > window.innerHeight - 8) top = r.top - ph - 10;
+    var left = Math.max(8, Math.min(r.right - pw, window.innerWidth - pw - 8));
+    pop.style.top = top + 'px';
+    pop.style.left = left + 'px';
+  }
+  triggers.forEach(function (btn) {
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (pop.classList.contains('open') && currentTrigger === btn) { closeConvo(); return; }
+      openConvo(btn);
+    });
+  });
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest('#convoPop') && !e.target.closest('.js-convo')) closeConvo();
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeConvo(); });
+  window.addEventListener('resize', closeConvo);
+})();
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hyperformula@2.7.0/dist/hyperformula.full.min.js"></script>
+<script>
+const excelModels = [
+  {
+    id: 'apollo',
+    title: 'Apollo Hospitals',
+    fileName: 'APOLLOHOSP.NS_financial_model.xlsx',
+    file: 'assets/excel/APOLLOHOSP.NS_financial_model.xlsx',
+    desc: 'Full-stack equity model for Apollo Hospitals Enterprise — scenario-driven revenue build, margins, WACC, DCF, SOTP, peer comparables and a research dashboard.',
+    badge: 'Featured'
+  }
+];
+
+const state = {
+  model: null,
+  wb: null,
+  hf: null,
+  cleanBuffer: null,
+  sheetNames: [],
+  sheetIdByName: {},
+  activeSheet: null,
+  cellMap: {},
+  mergesBySheet: {},
+  colWidthsBySheet: {},
+  skipBySheet: {},
+  dimsBySheet: {},
+  snapshot: new Map(),
+  touched: new Set(),
+  edits: new Map(),
+  editMode: false,
+  selected: null,
+  editingAddr: null,
+  pickAnchor: null,
+  pickPainted: [],
+  lastPickAt: 0,
+  auditCells: new Set(['B6', 'E6', 'B7', 'E7', 'B8', 'E8']),
+  auditSheet: 'Audit & Dashboard'
+};
+
+const $ = (sel, root) => (root || document).querySelector(sel);
+const $$ = (sel, root) => [...(root || document).querySelectorAll(sel)];
+
+function normalizeArgb(argb) {
+  if (!argb) return null;
+  const s = String(argb).replace('#', '');
+  return s.slice(-6).toUpperCase();
+}
+function colLetter(n) {
+  let s = '';
+  while (n > 0) { const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); }
+  return s;
+}
+function parseAddr(addr) {
+  const m = /^([A-Z]+)(\d+)$/.exec(addr);
+  let col = 0;
+  for (const ch of m[1]) col = col * 26 + (ch.charCodeAt(0) - 64);
+  return { col: col - 1, row: parseInt(m[2], 10) - 1 };
+}
+function isFormulaValue(v) {
+  return v && typeof v === 'object' && typeof v.formula === 'string';
+}
+function rawCellValue(cell) {
+  let v = cell.value;
+  if (v == null) return null;
+  if (isFormulaValue(v)) return '=' + v.formula;
+  if (v instanceof Date) return v;
+  if (typeof v === 'object') {
+    if (Array.isArray(v.richText)) return v.richText.map(t => t.text).join('');
+    if (typeof v.text === 'string') return v.text;
+    if (v.error) return v.error;
+    if (v.result !== undefined) return v.result;
+    if (v.hyperlink) return v.text || v.hyperlink;
+    return null;
+  }
+  return v;
+}
+function hfToDisplay(v) {
+  if (v == null) return { text: '', isError: false };
+  if (typeof v === 'object' && 'type' in v && 'value' in v) {
+    if (v.type === 'VALUE' || v.type === 'ERROR' || v.type === 'DIV' || v.type === 'NUM' || v.type === 'NA' || v.type === 'REF' || v.type === 'CYCLE' || v.type === 'NAME' || v.type === 'LIC' || v.type === 'SPILL') {
+      return { text: String(v.value), isError: true };
+    }
+    return { text: String(v.value), isError: false };
+  }
+  if (typeof v === 'boolean') return { text: v ? 'TRUE' : 'FALSE', isError: false };
+  if (v instanceof Date) return { text: v.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }), isError: false };
+  return { text: String(v), isError: false, num: typeof v === 'number' ? v : undefined };
+}
+function formatNumber(v, numFmt) {
+  if (typeof v !== 'number' || !isFinite(v)) return String(v);
+  const fmt = numFmt || 'General';
+  const isPct = fmt.includes('%');
+  const decimalsMatch = fmt.match(/\.(0+)/);
+  const decimals = decimalsMatch ? decimalsMatch[1].length : (fmt.includes('#,##0') ? 0 : 2);
+  const parens = fmt.includes('(');
+  const neg = v < 0;
+  const abs = Math.abs(v);
+  let out;
+  if (isPct) out = (abs * 100).toFixed(decimals) + '%';
+  else if (fmt.includes('"x"')) out = abs.toFixed(2) + 'x';
+  else if (fmt.includes('"d"')) out = abs.toFixed(1) + 'd';
+  else if (fmt.includes('#,##0.00')) out = abs.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  else if (fmt.includes('#,##0')) out = abs.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+  else if (fmt.includes('0.00')) out = abs.toFixed(2);
+  else out = abs.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  if (neg) out = parens ? '(' + out + ')' : '-' + out;
+  else if (fmt.includes('"-"') && abs === 0) out = '-';
+  return out;
+}
+
+async function sanitizeWorkbook(arrayBuffer) {
+  const zip = await JSZip.loadAsync(arrayBuffer);
+  const strip = [];
+  zip.forEach(rel => { if (/^xl\/(drawings|charts)\//.test(rel)) strip.push(rel); });
+  const drawingRe = /<drawing\b[^>]*\/>/g;
+  for (const fn of Object.keys(zip.files)) {
+    if (/^xl\/worksheets\/sheet\d+\.xml$/.test(fn)) {
+      const x = await zip.file(fn).async('string');
+      if (drawingRe.test(x)) {
+        zip.file(fn, x.replace(drawingRe, ''));
+        const rn = fn.replace('worksheets/', 'worksheets/_rels/') + '.rels';
+        if (zip.file(rn)) strip.push(rn);
+      }
+    }
+  }
+  strip.forEach(t => zip.remove(t));
+  const ctFile = zip.file('[Content_Types].xml');
+  if (ctFile) {
+    const ct = await ctFile.async('string');
+    zip.file('[Content_Types].xml', ct.replace(/<Override[^>]*PartName="\/xl\/(drawings|charts)\/[^"]*"[^>]*\/>/g, ''));
+  }
+  return zip.generateAsync({ type: 'arraybuffer', compression: 'DEFLATE' });
+}
+
+function hfClass() {
+  const H = window.HyperFormula;
+  if (!H) return null;
+  return H.buildFromSheets ? H : H.HyperFormula;
+}
+
+function cellKey(sheet, addr) { return sheet + '!' + addr; }
+
+function hfFormulaAt(sheetName, addr) {
+  try {
+    const f = state.hf.getCellFormula({ sheet: state.sheetIdByName[sheetName], ...parseAddrToHF(addr) });
+    return f || null;
+  } catch (e) { return null; }
+}
+function parseAddrToHF(addr) {
+  const p = parseAddr(addr);
+  return { row: p.row, col: p.col };
+}
+function snapshotCellValue(cell) {
+  if (isFormulaValue(cell.value)) return { f: '=' + cell.value.formula };
+  const v = rawCellValue(cell);
+  if (v instanceof Date) return { v: v.getTime(), d: true };
+  return { v };
+}
+function currentCellEquivalent(sheetName, addr, snap) {
+  const f = hfFormulaAt(sheetName, addr);
+  if (snap.f !== undefined || f) {
+    return { f: f || null, match: (snap.f || null) === f };
+  }
+  const v = getHFCell(sheetName, addr);
+  let cur;
+  if (v && typeof v === 'object' && 'type' in v) cur = '#' + v.type;
+  else if (v instanceof Date) cur = v.getTime();
+  else cur = v;
+  const orig = snap.d ? snap.v : snap.v;
+  const a = (cur === null || cur === undefined) ? null : cur;
+  const b = (orig === null || orig === undefined) ? null : orig;
+  return { v: a, match: a === b };
+}
+
+function computeDiff() {
+  const diff = new Map();
+  for (const key of state.touched) {
+    const bang = key.lastIndexOf('!');
+    const sheet = key.slice(0, bang);
+    const addr = key.slice(bang + 1);
+    const snap = state.snapshot.get(key);
+    if (!snap) { diff.set(key, { value: hfFormulaAt(sheet, addr) || getHFCell(sheet, addr), orig: null }); continue; }
+    const cur = currentCellEquivalent(sheet, addr, snap);
+    const same = snap.f !== undefined ? cur.match : cur.match;
+    if (!same) {
+      diff.set(key, { value: snap.f !== undefined ? (hfFormulaAt(sheet, addr) || getHFCell(sheet, addr)) : getHFCell(sheet, addr), orig: snap.f !== undefined ? snap.f : snap.v });
+    }
+  }
+  return diff;
+}
+
+function refreshEditedStats() {
+  state.edits = computeDiff();
+  setEditedUI();
+}
+
+async function loadModel(model) {
+  state.model = model;
+  state.touched = new Set();
+  state.snapshot = new Map();
+  state.edits = new Map();
+  state.selected = null;
+  state.editingAddr = null;
+  state.editMode = false;
+  $('#wbFileName').textContent = model.fileName;
+  $('#downloadOriginal').href = model.file;
+  $('#wbSectionSmall').textContent = 'Loading workbook…';
+  $('#gridWrap').innerHTML = '<div class="wb-loading" id="wbLoading">Fetching ' + model.fileName + '…</div>';
+  $('#tabBar').innerHTML = '';
+  updateModeUI();
+  setEditedUI();
+
+  const res = await fetch(model.file);
+  if (!res.ok) throw new Error('Could not fetch workbook (HTTP ' + res.status + ')');
+  const buf = await res.arrayBuffer();
+  const clean = await sanitizeWorkbook(buf);
+  state.cleanBuffer = clean;
+
+  const C = hfClass();
+  const EJCls = window.ExcelJS && (window.ExcelJS.Workbook ? window.ExcelJS : window.ExcelJS.default);
+  if (!C || !EJCls) throw new Error('Excel engine failed to load from CDN');
+
+  const wb = new EJCls.Workbook();
+  await wb.xlsx.load(clean);
+  state.wb = wb;
+
+  state.sheetNames = wb.worksheets.map(ws => ws.name);
+  state.sheetIdByName = {};
+  state.cellMap = {};
+  state.mergesBySheet = {};
+  state.colWidthsBySheet = {};
+  state.skipBySheet = {};
+  state.dimsBySheet = {};
+
+  const sheetsMatrix = {};
+  let formulaCount = 0;
+  wb.worksheets.forEach(ws => {
+    const matrix = [];
+    let maxCol = 0;
+    ws.eachRow({ includeEmpty: true }, (row, rowNumber) => {
+      const cells = [];
+      row.eachCell({ includeEmpty: true }, (cell, colNumber) => {
+        const v = rawCellValue(cell);
+        cells[colNumber - 1] = v;
+        if (isFormulaValue(cell.value)) formulaCount++;
+      });
+      maxCol = Math.max(maxCol, row.cellCount);
+      matrix[rowNumber - 1] = cells;
+    });
+    sheetsMatrix[ws.name] = matrix;
+    state.mergesBySheet[ws.name] = (ws.model.merges || []).slice();
+    const skip = new Set();
+    for (const range of state.mergesBySheet[ws.name]) {
+      const [a, b] = range.split(':');
+      const s = parseAddr(a), e = parseAddr(b);
+      for (let r = s.row; r <= e.row; r++) for (let c = s.col; c <= e.col; c++) {
+        const key = colLetter(c + 1) + (r + 1);
+        if (key !== a) skip.add(key);
+      }
+    }
+    state.skipBySheet[ws.name] = skip;
+    const widths = [];
+    const maxDim = Math.max(maxCol, 14);
+    for (let i = 1; i <= maxDim; i++) {
+      const w = ws.getColumn(i).width;
+      widths.push(w ? Math.round(w * 7.2) + 12 : 90);
+    }
+    state.colWidthsBySheet[ws.name] = widths;
+    state.dimsBySheet[ws.name] = { maxCol: widths.length, maxRow: ws.rowCount };
+
+    const cellIndex = {};
+    ws.eachRow({ includeEmpty: false }, row => {
+      row.eachCell({ includeEmpty: false }, cell => {
+        cellIndex[cell.address] = cell;
+        state.snapshot.set(cellKey(ws.name, cell.address), snapshotCellValue(cell));
+      });
+    });
+    state.cellMap[ws.name] = cellIndex;
+  });
+
+  const hf = C.buildFromSheets(sheetsMatrix, { licenseKey: 'gpl-v3' });
+  (wb.definedNames.model || []).forEach(d => {
+    try { hf.addNamedExpression(d.name, '=' + d.ranges[0]); } catch (e) { }
+  });
+  state.hf = hf;
+  state.sheetNames.forEach(n => { state.sheetIdByName[n] = hf.getSheetId(n); });
+
+  $('#statSheets').textContent = state.sheetNames.length;
+  $('#statFormulas').textContent = '~' + formulaCount.toLocaleString('en-IN');
+
+  renderTabs();
+  activateSheet(state.sheetNames.includes('Summary') ? 'Summary' : state.sheetNames[0]);
+  $('#wbSectionSmall').textContent = model.title + ' · ' + state.sheetNames.length + ' sheets';
+  refreshScenarioButtons();
+}
+
+function mergedSpans(sheetName) {
+  const spans = {};
+  for (const range of state.mergesBySheet[sheetName] || []) {
+    const [a, b] = range.split(':');
+    const s = parseAddr(a), e = parseAddr(b);
+    spans[a] = { rowSpan: e.row - s.row + 1, colSpan: e.col - s.col + 1 };
+  }
+  return spans;
+}
+
+function getHFCell(sheetName, addr) {
+  const id = state.sheetIdByName[sheetName];
+  const p = parseAddr(addr);
+  return state.hf.getCellValue({ sheet: id, row: p.row, col: p.col });
+}
+
+function auditOverrides() {
+  const out = {};
+  const colVal = (sheet, row, col) => getHFCell(sheet, colLetter(col + 1) + row);
+  const isErr = v => v && typeof v === 'object' && 'type' in v;
+  try {
+    let e6 = 0, e7 = 0, e8 = 0;
+    for (let c = 1; c <= 10; c++) {
+      const a = colVal('Balance Sheet', 11, c), b = colVal('Balance Sheet', 22, c), c3 = colVal('Balance Sheet', 3, c), cf = colVal('Cash Flow', 14, c);
+      if (typeof a === 'number' && typeof b === 'number' && a !== 0 && Math.abs(a - b) / Math.abs(a) > 0.005) e6++;
+      if (typeof cf === 'number' && typeof c3 === 'number' && c3 !== 0 && Math.abs(cf - c3) / Math.abs(c3) > 0.01) e7++;
+    }
+    const countErrors = (sheet, r1, r2) => {
+      let n = 0;
+      for (let r = r1; r <= r2; r++) for (let c = 1; c <= 10; c++) { if (isErr(colVal(sheet, r, c))) n++; }
+      return n;
+    };
+    e8 = countErrors('Income Statement', 3, 16) + countErrors('Balance Sheet', 3, 25) + countErrors('Cash Flow', 3, 16);
+    out['B6'] = e6 === 0 ? 'PASS' : 'REVIEW';
+    out['E6'] = e6;
+    out['B7'] = e7 === 0 ? 'PASS' : 'REVIEW';
+    out['E7'] = e7;
+    out['B8'] = e8 === 0 ? 'PASS' : 'REVIEW';
+    out['E8'] = e8;
+  } catch (e) { }
+  return out;
+}
+
+function renderTabs() {
+  const bar = $('#tabBar');
+  bar.innerHTML = '';
+  state.sheetNames.forEach(name => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'tab';
+    btn.setAttribute('role', 'tab');
+    btn.dataset.sheet = name;
+    btn.textContent = name;
+    btn.title = name;
+    btn.addEventListener('click', () => activateSheet(name));
+    bar.appendChild(btn);
+  });
+}
+
+function activateSheet(name) {
+  state.activeSheet = name;
+  state.editingAddr = null;
+  $$('.tab', $('#tabBar')).forEach(t => t.setAttribute('aria-selected', String(t.dataset.sheet === name)));
+  renderSheet(name);
+  updateFormulaBar();
+}
+
+function renderSheet(name) {
+  const ws = state.wb.getWorksheet(name);
+  const wrap = $('#gridWrap');
+  const widths = state.colWidthsBySheet[name] || [];
+  const spans = mergedSpans(name);
+  const skip = state.skipBySheet[name] || new Set();
+  const cellIndex = state.cellMap[name] || {};
+  const touchedInSheet = a => state.touched.has(cellKey(name, a));
+  const rawAudits = name === state.auditSheet ? auditOverrides() : {};
+  const audits = {};
+  for (const k of Object.keys(rawAudits)) if (!touchedInSheet(k)) audits[k] = rawAudits[k];
+  const maxCol = widths.length;
+  const maxRow = ws.rowCount;
+
+  let html = '<table class="xl" aria-label="' + escapeHtml(name) + ' worksheet"><colgroup><col style="width:38px">';
+  for (let c = 0; c < maxCol; c++) html += '<col style="width:' + (widths[c] || 90) + 'px">';
+  html += '</colgroup><thead><tr><th class="corner" aria-hidden="true"></th>';
+  for (let c = 1; c <= maxCol; c++) html += '<th scope="col">' + colLetter(c) + '</th>';
+  html += '</tr></thead><tbody>';
+
+  for (let r = 1; r <= maxRow; r++) {
+    html += '<tr><th scope="row">' + r + '</th>';
+    for (let c = 1; c <= maxCol; c++) {
+      const addr = colLetter(c) + r;
+      if (skip.has(addr)) continue;
+      const span = spans[addr];
+      const cell = cellIndex[addr];
+      const spanAttr = (span ? ' colspan="' + span.colSpan + '" rowspan="' + span.rowSpan + '"' : '');
+      if (!cell) {
+        const computed = getHFCell(name, addr);
+        if (computed != null) {
+          const dispE = hfToDisplay(computed);
+          const clsE = [];
+          if (dispE.isError) clsE.push('xl-err'); else if (typeof computed === 'number') clsE.push('num');
+          if (state.selected && state.selected.sheet === name && state.selected.addr === addr) clsE.push('sel');
+          const clsAttrE = clsE.length ? ' class="' + clsE.join(' ') + '"' : '';
+          const textE = (!dispE.isError && typeof computed === 'number') ? formatNumber(computed, null) : dispE.text;
+          html += '<td' + spanAttr + clsAttrE + ' data-addr="' + addr + '">' + escapeHtml(textE) + '</td>';
+        } else {
+          const selAttrE = (state.selected && state.selected.sheet === name && state.selected.addr === addr) ? ' class="sel"' : '';
+          html += '<td' + spanAttr + selAttrE + ' data-addr="' + addr + '"></td>';
+        }
+        continue;
+      }
+
+      const fill = normalizeArgb(cell.fill && cell.fill.pattern === 'solid' && cell.fill.fgColor && cell.fill.fgColor.argb);
+      const fontColor = normalizeArgb(cell.font && cell.font.color && cell.font.color.argb);
+      const bold = !!(cell.font && cell.font.bold);
+      const formula = isFormulaValue(cell.value) ? '=' + cell.value.formula : null;
+      const numFmt = cell.numFmt;
+      const align = cell.alignment && cell.alignment.horizontal;
+
+      let computed = audits[addr] !== undefined ? audits[addr] : getHFCell(name, addr);
+      const disp = hfToDisplay(computed);
+      const liveFormula = state.touched.has(cellKey(name, addr)) ? hfFormulaAt(name, addr) : formula;
+
+      const isInput = fill === 'FFF2CC' && fontColor === '0000FF';
+      const cls = [];
+      if (disp.isError) cls.push('xl-err');
+      else if (typeof computed === 'number') cls.push('num');
+      else if (align === 'center' || (span && span.colSpan > 1)) cls.push('center');
+      if (isInput) cls.push('xl-input-cell');
+      else if (fill === 'D9E1F2') cls.push('xl-calc-cell');
+      else if (fill === '1F3864') cls.push('xl-head-cell');
+      if (state.selected && state.selected.sheet === name && state.selected.addr === addr) cls.push('sel');
+      if (state.editingAddr === addr) cls.push('editing');
+
+      const style = [];
+      if (fill && fill !== 'FFF2CC' && fill !== 'D9E1F2') style.push('background:#' + fill);
+      if (fontColor) style.push('color:#' + fontColor);
+      if (bold) style.push('font-weight:700');
+      if (align) style.push('text-align:' + align);
+      const clsAttr = cls.length ? ' class="' + cls.join(' ') + '"' : '';
+      const styleAttr = style.length ? ' style="' + style.join(';') + '"' : '';
+      const dataAttr = ' data-addr="' + addr + '"';
+
+      if (liveFormula && audits[addr] === undefined) {
+        let text = disp.text;
+        if (!disp.isError && typeof computed === 'number') text = formatNumber(computed, numFmt);
+        html += '<td' + spanAttr + clsAttr + styleAttr + dataAttr + '>' + escapeHtml(text) + '</td>';
+      } else if (/^https?:\/\//.test(String(rawCellValue(cell) || ''))) {
+        const u = String(rawCellValue(cell));
+        html += '<td' + spanAttr + clsAttr + styleAttr + dataAttr + '><a class="xl-link" href="' + escapeAttr(u) + '" target="_blank" rel="noopener">' + escapeHtml(u) + '</a></td>';
+      } else if (typeof computed === 'number') {
+        html += '<td' + spanAttr + clsAttr + styleAttr + dataAttr + '>' + escapeHtml(formatNumber(computed, numFmt)) + '</td>';
+      } else {
+        html += '<td' + spanAttr + clsAttr + styleAttr + dataAttr + '>' + escapeHtml(disp.text) + '</td>';
+      }
+    }
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+  updatePickCursor();
+}
+
+function cellEditString(sheetName, addr) {
+  const f = hfFormulaAt(sheetName, addr);
+  if (f) return f;
+  const v = getHFCell(sheetName, addr);
+  if (v == null) return '';
+  if (v instanceof Date) return v.toLocaleDateString('en-IN');
+  if (typeof v === 'object' && 'type' in v) return String(v.value);
+  if (typeof v === 'boolean') return v ? 'TRUE' : 'FALSE';
+  return String(v);
+}
+
+function startCellEdit(addr, initialChar) {
+  if (!state.editMode) return;
+  const td = $('#gridWrap td[data-addr="' + addr + '"]');
+  if (!td || td.querySelector('.cell-editor')) return;
+  state.editingAddr = addr;
+  td.classList.add('editing');
+  const input = document.createElement('input');
+  input.className = 'cell-editor';
+  input.type = 'text';
+  input.spellcheck = false;
+  input.autocomplete = 'off';
+  input.setAttribute('aria-label', 'Edit cell ' + addr);
+  input.value = initialChar !== null && initialChar !== undefined ? initialChar : cellEditString(state.activeSheet, addr);
+  td.appendChild(input);
+  input.focus();
+  if (initialChar === null || initialChar === undefined) input.select();
+  const fi = $('#formulaInput');
+  if (fi && fi.value !== input.value) fi.value = input.value;
+  updatePickCursor();
+  input.addEventListener('keydown', e => {
+    e.stopPropagation();
+    if (e.key === 'Enter') { e.preventDefault(); if (commitEdit(state.activeSheet, addr, input.value)) moveSelection(e.shiftKey ? -1 : 1, 0); }
+    else if (e.key === 'Tab') { e.preventDefault(); if (commitEdit(state.activeSheet, addr, input.value)) moveSelection(0, e.shiftKey ? -1 : 1); }
+    else if (e.key === 'Escape') { e.preventDefault(); cancelCellEdit(); }
+  });
+  input.addEventListener('input', () => {
+    input.classList.remove('invalid', 'shake');
+    input.removeAttribute('aria-invalid');
+    const fi = $('#formulaInput');
+    if (fi && fi.value !== input.value) fi.value = input.value;
+    updatePickCursor();
+  });
+  input.addEventListener('blur', () => {
+    if (state.editingAddr !== addr) return;
+    setTimeout(() => {
+      const ae = document.activeElement;
+      if (ae === $('#formulaInput') || (ae && ae.closest && ae.closest('#fxPanel'))) return;
+      if (state.editingAddr === addr) commitEdit(state.activeSheet, addr, input.value);
+    }, 0);
+  });
+}
+
+function cancelCellEdit() {
+  state.editingAddr = null;
+  renderSheet(state.activeSheet);
+  updateFormulaBar();
+  const gw = $('#gridWrap');
+  if (gw) gw.focus({ preventScroll: true });
+}
+
+function parseEditInput(raw) {
+  const t = String(raw).trim();
+  if (t === '') return { ok: true, value: null };
+  if (t.startsWith('=')) return { ok: true, value: t };
+  if (/^(true|false)$/i.test(t)) return { ok: true, value: /^t/i.test(t) };
+  if (/^"([^"]*)"$/.test(t) || /^'([^']*)'$/.test(t)) return { ok: true, value: t.slice(1, -1) };
+  const stripped = t.replace(/[₹$€£]/g, '').replace(/,/g, '').trim();
+  const pct = stripped.match(/^(-?\d+(\.\d+)?([eE][+-]?\d+)?)%$/);
+  if (pct) return { ok: true, value: parseFloat(pct[1]) / 100 };
+  if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(stripped)) return { ok: true, value: parseFloat(stripped) };
+  return { ok: true, value: raw };
+}
+
+function commitEdit(sheetName, addr, rawValue, options) {
+  options = options || {};
+  const td = $('#gridWrap td[data-addr="' + addr + '"]');
+  const editor = td ? td.querySelector('.cell-editor') : null;
+  const parsed = parseEditInput(rawValue);
+  if (typeof parsed.value === 'string' && parsed.value.startsWith('=')) {
+    let valid = false;
+    try { valid = state.hf.validateFormula(parsed.value); } catch (e) { valid = false; }
+    if (!valid) parsed.value = null, parsed.invalid = true;
+  }
+  const p = parseAddr(addr);
+  const address = { sheet: state.sheetIdByName[sheetName], row: p.row, col: p.col };
+  if (parsed.invalid) {
+    if (editor) {
+      editor.classList.add('invalid', 'shake');
+      editor.setAttribute('aria-invalid', 'true');
+      editor.title = 'Formula not understood — check the syntax';
+      setTimeout(() => editor.classList.remove('shake'), 250);
+      editor.focus();
+      return false;
+    }
+    return false;
+  }
+  try {
+    state.hf.setCellContents(address, [[parsed.value]]);
+  } catch (err) {
+    if (editor) {
+      editor.classList.add('invalid', 'shake');
+      editor.setAttribute('aria-invalid', 'true');
+      editor.title = String(err && err.message ? err.message : err);
+      setTimeout(() => editor.classList.remove('shake'), 250);
+      editor.focus();
+      return false;
+    }
+    return false;
+  }
+  state.touched.add(cellKey(sheetName, addr));
+  state.editingAddr = null;
+  refreshEditedStats();
+  renderSheet(sheetName);
+  if (sheetName === 'Assumptions' && addr === 'B2') refreshScenarioButtons();
+  updateFormulaBar();
+  const gw = $('#gridWrap');
+  if (gw) gw.focus({ preventScroll: true });
+  updatePickCursor();
+  return true;
+}
+
+function clearSelectedCell() {
+  if (!state.selected || !state.editMode) return;
+  const { sheet, addr } = state.selected;
+  if (commitEdit(sheet, addr, '', {})) { /* cleared */ }
+}
+
+function setCellFromValue(sheetName, addr, value) {
+  const p = parseAddr(addr);
+  state.hf.setCellContents({ sheet: state.sheetIdByName[sheetName], row: p.row, col: p.col }, [[value]]);
+  state.touched.add(cellKey(sheetName, addr));
+}
+
+function selectCell(sheetName, addr, moveFocus) {
+  state.selected = { sheet: sheetName, addr };
+  $$('#gridWrap td.sel').forEach(t => t.classList.remove('sel'));
+  const td = $('#gridWrap td[data-addr="' + addr + '"]');
+  if (td) td.classList.add('sel');
+  if (moveFocus) $('#gridWrap').focus({ preventScroll: true });
+  updateFormulaBar(true);
+}
+
+function visibleNeighbor(sheetName, addr, dr, dc) {
+  const skip = state.skipBySheet[sheetName] || new Set();
+  const dims = state.dimsBySheet[sheetName] || { maxRow: 1, maxCol: 1 };
+  let { row, col } = parseAddr(addr);
+  for (let i = 0; i < 200; i++) {
+    row += dr; col += dc;
+    if (row < 0 || col < 0 || row >= dims.maxRow || col >= dims.maxCol) return null;
+    const a = colLetter(col + 1) + (row + 1);
+    if (!skip.has(a)) return a;
+  }
+  return null;
+}
+
+function moveSelection(dr, dc) {
+  if (!state.selected) {
+    const first = $('#gridWrap td[data-addr]');
+    if (first) selectCell(state.activeSheet, first.dataset.addr, true);
+    return;
+  }
+  const { sheet, addr } = state.selected;
+  const next = visibleNeighbor(sheet, addr, dr, dc);
+  if (!next) return;
+  selectCell(sheet, next, true);
+  const td = $('#gridWrap td[data-addr="' + next + '"]');
+  if (td) td.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+
+function updateFormulaBar(silent) {
+  const addrEl = $('#formulaAddr'), inputEl = $('#formulaInput');
+  inputEl.readOnly = !state.editMode;
+  if (!state.selected || !state.wb) {
+    addrEl.textContent = '—';
+    inputEl.value = '';
+    inputEl.placeholder = 'Select any cell' + (state.editMode ? ' to edit it' : ' to inspect it');
+    return;
+  }
+  const { sheet, addr } = state.selected;
+  const ws = state.wb.getWorksheet(sheet);
+  const cell = ws && ws.getCell(addr);
+  const liveFormula = hfFormulaAt(sheet, addr);
+  if (liveFormula) inputEl.value = liveFormula;
+  else if (cell && rawCellValue(cell) != null && !state.touched.has(cellKey(sheet, addr))) {
+    const raw = rawCellValue(cell);
+    inputEl.value = raw instanceof Date ? raw.toLocaleDateString('en-IN') : String(raw);
+  } else {
+    const v = getHFCell(sheet, addr);
+    inputEl.value = hfToDisplay(v).text;
+  }
+  addrEl.textContent = sheet + '!' + addr;
+}
+
+function setEditedUI() {
+  const n = state.edits.size;
+  $('#statEdits').textContent = String(n);
+  $('#editedDot').classList.toggle('edited', n > 0);
+  $('#editedDot').title = n > 0 ? 'Edited — differs from the saved workbook' : 'Unedited — as saved';
+  $('#wbEditedLabel').textContent = n > 0 ? 'Edited locally · ' + n + ' cell' + (n > 1 ? 's' : '') : 'Original · unedited';
+  $('#resetBtn').disabled = n === 0;
+}
+
+function updateModeUI() {
+  const on = state.editMode;
+  $('#modeToggle').setAttribute('aria-pressed', String(on));
+  $('#modeToggleLabel').textContent = on ? 'Editing' : 'Viewing';
+  $('#modePill').classList.toggle('on', on);
+  $('#modePillText').textContent = on ? 'Editing' : 'Viewing';
+  $('#formulaInput').readOnly = !on;
+  $('#gridWrap').style.cursor = '';
+  updateFormulaBar();
+}
+
+function refreshScenarioButtons() {
+  let current = 1;
+  try { current = Number(getHFCell('Assumptions', 'B2')) || 1; } catch (e) { current = 1; }
+  $$('.scenario button').forEach(b => b.setAttribute('aria-pressed', String(Number(b.dataset.scenario) === current)));
+}
+
+function setScenario(n) {
+  setCellFromValue('Assumptions', 'B2', n);
+  refreshEditedStats();
+  renderSheet(state.activeSheet);
+  refreshScenarioButtons();
+  updateFormulaBar();
+  const gw = $('#gridWrap');
+  if (gw) gw.focus({ preventScroll: true });
+}
+
+function undoRedo(kind) {
+  try {
+    if (kind === 'undo') { if (!state.hf.isThereSomethingToUndo()) return; state.hf.undo(); }
+    else { if (!state.hf.isThereSomethingToRedo()) return; state.hf.redo(); }
+  } catch (e) { return; }
+  state.editingAddr = null;
+  refreshEditedStats();
+  renderSheet(state.activeSheet);
+  refreshScenarioButtons();
+  updateFormulaBar();
+  const gw = $('#gridWrap');
+  if (gw) gw.focus({ preventScroll: true });
+}
+
+let saveHintTimer = null;
+function flashSaveHint(text) {
+  const el = $('#saveHint');
+  el.textContent = text;
+  el.classList.add('show');
+  clearTimeout(saveHintTimer);
+  saveHintTimer = setTimeout(() => el.classList.remove('show'), 2400);
+}
+
+async function injectCalcPr(buffer) {
+  const zip = await JSZip.loadAsync(buffer);
+  const f = zip.file('xl/workbook.xml');
+  if (!f) return buffer;
+  let xml = await f.async('string');
+  if (xml.includes('<calcPr')) return buffer;
+  const ins = '<calcPr calcId="124519" fullCalcOnLoad="1"/>';
+  if (xml.includes('</definedNames>')) xml = xml.replace('</definedNames>', '</definedNames>' + ins);
+  else xml = xml.replace('</workbook>', ins + '</workbook>');
+  zip.file('xl/workbook.xml', xml);
+  return zip.generateAsync({ type: 'arraybuffer', compression: 'DEFLATE' });
+}
+
+async function saveWorkbook() {
+  if (!state.cleanBuffer) return;
+  refreshEditedStats();
+  const diff = computeDiff();
+  const EJCls = window.ExcelJS && (window.ExcelJS.Workbook ? window.ExcelJS : window.ExcelJS.default);
+  if (!EJCls) { flashSaveHint('Engine failed to load'); return; }
+  if (diff.size === 0) {
+    const a = document.createElement('a');
+    a.href = state.model.file;
+    a.download = state.model.fileName;
+    a.click();
+    flashSaveHint('Original downloaded');
+    return;
+  }
+  const wb = new EJCls.Workbook();
+  await wb.xlsx.load(state.cleanBuffer);
+  for (const [key] of diff) {
+    const bang = key.lastIndexOf('!');
+    const sheetName = key.slice(0, bang);
+    const addr = key.slice(bang + 1);
+    const ws = wb.getWorksheet(sheetName);
+    if (!ws) continue;
+    const cell = ws.getCell(addr);
+    const p = parseAddr(addr);
+    const formula = hfFormulaAt(sheetName, addr);
+    if (formula) {
+      cell.value = { formula: formula.replace(/^=/, '') };
+      continue;
+    }
+    const v = state.hf.getCellValue({ sheet: state.sheetIdByName[sheetName], row: p.row, col: p.col });
+    if (v == null) cell.value = null;
+    else if (typeof v === 'object' && 'type' in v) cell.value = { error: String(v.value).startsWith('#') ? String(v.value) : '#' + String(v.value) };
+    else cell.value = v;
+  }
+  if (wb.calcProperties) wb.calcProperties.fullCalcOnLoad = true;
+  else wb.calcProperties = { fullCalcOnLoad: true };
+  const raw = await wb.xlsx.writeBuffer();
+  const out = await injectCalcPr(raw);
+  const blob = new Blob([out], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = state.model.fileName;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  flashSaveHint('Saved copy downloaded');
+}
+
+function activeFormulaTarget() {
+  const editor = document.querySelector('.cell-editor');
+  if (editor && editor.value.trimStart().charAt(0) === '=') return editor;
+  const fi = $('#formulaInput');
+  if (document.activeElement === fi && fi.value.trimStart().charAt(0) === '=') return fi;
+  return null;
+}
+function updatePickCursor() {
+  $('#gridWrap').classList.toggle('pick-mode', !!activeFormulaTarget());
+}
+function pickBounds(a, b) {
+  const pa = parseAddr(a), pb = parseAddr(b);
+  return { r0: Math.min(pa.row, pb.row), r1: Math.max(pa.row, pb.row), c0: Math.min(pa.col, pb.col), c1: Math.max(pa.col, pb.col) };
+}
+function paintPickRange(a, b) {
+  clearPickRange();
+  const { r0, r1, c0, c1 } = pickBounds(a, b);
+  const painted = [];
+  for (let r = r0; r <= r1; r++) for (let c = c0; c <= c1; c++) {
+    const td = $('#gridWrap td[data-addr="' + colLetter(c + 1) + (r + 1) + '"]');
+    if (td) { td.classList.add('pick'); painted.push(td); }
+  }
+  state.pickPainted = painted;
+}
+function clearPickRange() {
+  state.pickPainted.forEach(td => td.classList.remove('pick'));
+  state.pickPainted = [];
+}
+function refTokenFor(a, b) { return a === b ? a : a + ':' + b; }
+function insertReferenceInto(el, ref) {
+  const v = el.value;
+  const rangeTok = /(\$?[A-Za-z]{1,3}\$?[0-9]{1,7})(:(\$?[A-Za-z]{1,3}\$?[0-9]{1,7})?)?$/;
+  const m = v.match(rangeTok);
+  if (m && m.index !== undefined) {
+    el.value = v.slice(0, m.index) + ref;
+  } else if (/[=(,+\-*/:&<>!]\s*$/.test(v) || v.trim() === '' || v.trim() === '=') {
+    el.value = v + ref;
+  } else {
+    const s = (el.selectionStart == null) ? v.length : el.selectionStart;
+    const epos = (el.selectionEnd == null) ? s : el.selectionEnd;
+    el.value = v.slice(0, s) + ref + v.slice(epos);
+  }
+  el.focus({ preventScroll: true });
+  el.setSelectionRange(el.value.length, el.value.length);
+  updatePickCursor();
+}
+function insertSnippet(el, snippet) {
+  const v = el.value;
+  const tail = v.match(/([A-Za-z][A-Za-z0-9_.]*)$/);
+  const before = tail ? v.slice(0, tail.index) : v;
+  if (tail && (before === '' || before === '=' || /[=(,+\-*/:&<>!]\s*$/.test(before))) {
+    el.value = before + snippet;
+  } else {
+    const s = (el.selectionStart == null) ? v.length : el.selectionStart;
+    const epos = (el.selectionEnd == null) ? s : el.selectionEnd;
+    el.value = v.slice(0, s) + snippet + v.slice(epos);
+  }
+  el.focus({ preventScroll: true });
+  el.setSelectionRange(el.value.length, el.value.length);
+  updatePickCursor();
+}
+
+const FX_FUNCTIONS = [
+  ['SUM', 'SUM(number1, [number2], …)', 'Adds all the numbers in a range', 'Math'],
+  ['SUMSQ', 'SUMSQ(number1, …)', 'Sum of the squares of the arguments', 'Math'],
+  ['SUMPRODUCT', 'SUMPRODUCT(array1, [array2], …)', 'Multiplies arrays and sums the results', 'Math'],
+  ['PRODUCT', 'PRODUCT(number1, …)', 'Multiplies all the numbers', 'Math'],
+  ['ABS', 'ABS(number)', 'Absolute value', 'Math'],
+  ['INT', 'INT(number)', 'Rounds down to the nearest integer', 'Math'],
+  ['MOD', 'MOD(number, divisor)', 'Remainder after division', 'Math'],
+  ['POWER', 'POWER(number, power)', 'Number raised to a power', 'Math'],
+  ['SQRT', 'SQRT(number)', 'Square root', 'Math'],
+  ['ROUND', 'ROUND(number, num_digits)', 'Rounds to the given number of digits', 'Math'],
+  ['ROUNDUP', 'ROUNDUP(number, num_digits)', 'Rounds away from zero', 'Math'],
+  ['ROUNDDOWN', 'ROUNDDOWN(number, num_digits)', 'Rounds towards zero', 'Math'],
+  ['TRUNC', 'TRUNC(number, [num_digits])', 'Truncates the decimals', 'Math'],
+  ['MROUND', 'MROUND(number, multiple)', 'Rounds to the nearest multiple', 'Math'],
+  ['QUOTIENT', 'QUOTIENT(numerator, denominator)', 'Integer portion of division', 'Math'],
+  ['AVERAGE', 'AVERAGE(number1, …)', 'Arithmetic mean of the arguments', 'Stats'],
+  ['AVERAGEA', 'AVERAGEA(value1, …)', 'Mean including text and logicals', 'Stats'],
+  ['MEDIAN', 'MEDIAN(number1, …)', 'Middle value of the set', 'Stats'],
+  ['MIN', 'MIN(number1, …)', 'Smallest number', 'Stats'],
+  ['MAX', 'MAX(number1, …)', 'Largest number', 'Stats'],
+  ['LARGE', 'LARGE(array, k)', 'K-th largest value', 'Stats'],
+  ['SMALL', 'SMALL(array, k)', 'K-th smallest value', 'Stats'],
+  ['STDEV.S', 'STDEV.S(number1, …)', 'Sample standard deviation', 'Stats'],
+  ['STDEV.P', 'STDEV.P(number1, …)', 'Population standard deviation', 'Stats'],
+  ['VAR.S', 'VAR.S(number1, …)', 'Sample variance', 'Stats'],
+  ['VAR.P', 'VAR.P(number1, …)', 'Population variance', 'Stats'],
+  ['GEOMEAN', 'GEOMEAN(number1, …)', 'Geometric mean', 'Stats'],
+  ['CORREL', 'CORREL(array1, array2)', 'Correlation coefficient', 'Stats'],
+  ['COUNT', 'COUNT(value1, …)', 'Counts the numeric cells', 'Stats'],
+  ['COUNTA', 'COUNTA(value1, …)', 'Counts the non-empty cells', 'Stats'],
+  ['COUNTBLANK', 'COUNTBLANK(range)', 'Counts the empty cells', 'Stats'],
+  ['IF', 'IF(logical_test, value_if_true, [value_if_false])', 'Conditional branch', 'Logical'],
+  ['IFS', 'IFS(test1, value1, [test2, value2], …)', 'Multiple conditional branches', 'Logical'],
+  ['IFERROR', 'IFERROR(value, value_if_error)', 'Fallback when a formula errors', 'Logical'],
+  ['IFNA', 'IFNA(value, value_if_na)', 'Fallback on #N/A only', 'Logical'],
+  ['AND', 'AND(logical1, …)', 'TRUE when every test passes', 'Logical'],
+  ['OR', 'OR(logical1, …)', 'TRUE when any test passes', 'Logical'],
+  ['NOT', 'NOT(logical)', 'Reverses a logical value', 'Logical'],
+  ['XOR', 'XOR(logical1, …)', 'TRUE when an odd number of tests pass', 'Logical'],
+  ['CHOOSE', 'CHOOSE(index, value1, [value2], …)', 'Picks the N-th argument', 'Logical'],
+  ['SWITCH', 'SWITCH(expression, value1, result1, …, [default])', 'Matches value to result', 'Logical'],
+  ['SUMIF', 'SUMIF(range, criteria, [sum_range])', 'Sums cells that meet one condition', 'Conditional'],
+  ['SUMIFS', 'SUMIFS(sum_range, range1, criteria1, …)', 'Sums cells that meet many conditions', 'Conditional'],
+  ['COUNTIF', 'COUNTIF(range, criteria)', 'Counts cells that meet one condition', 'Conditional'],
+  ['COUNTIFS', 'COUNTIFS(range1, criteria1, …)', 'Counts cells that meet many conditions', 'Conditional'],
+  ['AVERAGEIF', 'AVERAGEIF(range, criteria, [average_range])', 'Mean of cells that meet one condition', 'Conditional'],
+  ['AVERAGEIFS', 'AVERAGEIFS(average_range, range1, criteria1, …)', 'Mean of cells that meet many conditions', 'Conditional'],
+  ['MINIFS', 'MINIFS(min_range, range1, criteria1, …)', 'Smallest cell that meets the conditions', 'Conditional'],
+  ['MAXIFS', 'MAXIFS(max_range, range1, criteria1, …)', 'Largest cell that meets the conditions', 'Conditional'],
+  ['VLOOKUP', 'VLOOKUP(lookup_value, table_array, col_index, [range_lookup])', 'Vertical lookup — first column match', 'Lookup'],
+  ['HLOOKUP', 'HLOOKUP(lookup_value, table_array, row_index, [range_lookup])', 'Horizontal lookup — first row match', 'Lookup'],
+  ['INDEX', 'INDEX(array, row_num, [col_num])', 'Returns the cell at an intersection', 'Lookup'],
+  ['MATCH', 'MATCH(lookup_value, array, [match_type])', 'Position of a value in a range', 'Lookup'],
+  ['ROW', 'ROW([reference])', 'Row number of a reference', 'Lookup'],
+  ['COLUMN', 'COLUMN([reference])', 'Column number of a reference', 'Lookup'],
+  ['ROWS', 'ROWS(array)', 'Number of rows in a range', 'Lookup'],
+  ['COLUMNS', 'COLUMNS(array)', 'Number of columns in a range', 'Lookup'],
+  ['HYPERLINK', 'HYPERLINK(link_location, [friendly_name])', 'Creates a clickable link', 'Lookup'],
+  ['CONCATENATE', 'CONCATENATE(text1, [text2], …)', 'Joins text strings', 'Text'],
+  ['LEFT', 'LEFT(text, [num_chars])', 'First N characters', 'Text'],
+  ['RIGHT', 'RIGHT(text, [num_chars])', 'Last N characters', 'Text'],
+  ['MID', 'MID(text, start_num, num_chars)', 'N characters from position start', 'Text'],
+  ['LEN', 'LEN(text)', 'Length of a string', 'Text'],
+  ['TRIM', 'TRIM(text)', 'Strips extra spaces', 'Text'],
+  ['UPPER', 'UPPER(text)', 'Uppercase', 'Text'],
+  ['LOWER', 'LOWER(text)', 'Lowercase', 'Text'],
+  ['PROPER', 'PROPER(text)', 'Capitalises each word', 'Text'],
+  ['SUBSTITUTE', 'SUBSTITUTE(text, old_text, new_text, [instance_num])', 'Replaces text in a string', 'Text'],
+  ['REPLACE', 'REPLACE(old_text, start_num, num_chars, new_text)', 'Replaces part of a string', 'Text'],
+  ['FIND', 'FIND(find_text, within_text, [start_num])', 'Case-sensitive position of text', 'Text'],
+  ['SEARCH', 'SEARCH(find_text, within_text, [start_num])', 'Case-insensitive position of text', 'Text'],
+  ['EXACT', 'EXACT(text1, text2)', 'TRUE when strings match exactly', 'Text'],
+  ['REPT', 'REPT(text, number_times)', 'Repeats text N times', 'Text'],
+  ['TODAY', 'TODAY()', 'Current date', 'Date'],
+  ['NOW', 'NOW()', 'Current date and time', 'Date'],
+  ['DATE', 'DATE(year, month, day)', 'Builds a date from parts', 'Date'],
+  ['YEAR', 'YEAR(date)', 'Year of a date', 'Date'],
+  ['MONTH', 'MONTH(date)', 'Month of a date', 'Date'],
+  ['DAY', 'DAY(date)', 'Day of the month', 'Date'],
+  ['DAYS', 'DAYS(end_date, start_date)', 'Days between two dates', 'Date'],
+  ['EOMONTH', 'EOMONTH(start_date, months)', 'Last day of the month, N months away', 'Date'],
+  ['EDATE', 'EDATE(start_date, months)', 'Same day, N months forward or back', 'Date'],
+  ['DATEDIF', 'DATEDIF(start_date, end_date, unit)', 'Whole years/months/days between dates', 'Date'],
+  ['WEEKDAY', 'WEEKDAY(date, [return_type])', 'Day of the week number', 'Date'],
+  ['NETWORKDAYS', 'NETWORKDAYS(start_date, end_date, [holidays])', 'Working days between dates', 'Date'],
+  ['NPV', 'NPV(rate, value1, [value2], …)', 'Net present value of cash flows', 'Finance'],
+  ['XNPV', 'XNPV(rate, values, dates)', 'NPV for irregular intervals', 'Finance'],
+  ['PMT', 'PMT(rate, nper, pv, [fv], [type])', 'Loan payment per period', 'Finance'],
+  ['FV', 'FV(rate, nper, pmt, [pv], [type])', 'Future value of an investment', 'Finance'],
+  ['PV', 'PV(rate, nper, pmt, [fv], [type])', 'Present value of an investment', 'Finance'],
+  ['RATE', 'RATE(nper, pmt, pv, [fv], [type])', 'Interest rate per period', 'Finance'],
+  ['NPER', 'NPER(rate, pmt, pv, [fv], [type])', 'Number of periods', 'Finance'],
+  ['EFFECT', 'EFFECT(nominal_rate, npery)', 'Effective annual interest', 'Finance'],
+  ['NOMINAL', 'NOMINAL(effect_rate, npery)', 'Nominal annual interest', 'Finance'],
+  ['SLN', 'SLN(cost, salvage, life)', 'Straight-line depreciation', 'Finance'],
+  ['MIRR', 'MIRR(values, finance_rate, reinvest_rate)', 'Modified internal rate of return', 'Finance']
+];
+function supportedFx() {
+  if (!state.hf || !state.hf.getRegisteredFunctionNames) return FX_FUNCTIONS;
+  const reg = new Set(state.hf.getRegisteredFunctionNames().map(f => f.toUpperCase()));
+  return FX_FUNCTIONS.filter(([n]) => reg.has(n.toUpperCase()));
+}
+function renderFxList(filter) {
+  const q = String(filter || '').trim().toLowerCase();
+  const all = supportedFx();
+  const hits = q ? all.filter(([n, sig, desc, cat]) => (n + ' ' + sig + ' ' + desc + ' ' + cat).toLowerCase().includes(q)) : all;
+  $('#fxCount').textContent = hits.length + ' / ' + all.length + ' functions';
+  $('#fxList').innerHTML = hits.map(([n, sig, desc]) =>
+    '<button class="fx-item" type="button" data-fn="' + escapeAttr(n) + '" role="option"><span class="fx-name">' + escapeHtml(n) + '</span><span class="fx-sig">' + escapeHtml(sig) + '</span><span class="fx-desc">' + escapeHtml(desc) + '</span></button>'
+  ).join('');
+}
+function openFxPanel() {
+  renderFxList($('#fxSearch').value);
+  $('#fxPanel').hidden = false;
+  $('#fxBtn').setAttribute('aria-expanded', 'true');
+  $('#fxSearch').focus();
+}
+function closeFxPanel() {
+  $('#fxPanel').hidden = true;
+  $('#fxBtn').setAttribute('aria-expanded', 'false');
+}
+function insertFunction(name) {
+  const snippet = name + '(';
+  const target = activeFormulaTarget();
+  if (target) {
+    insertSnippet(target, snippet);
+  } else if (state.selected) {
+    startCellEdit(state.selected.addr, '=' + snippet);
+  } else {
+    const first = $('#gridWrap td[data-addr]');
+    if (first) { selectCell(state.activeSheet, first.dataset.addr, true); startCellEdit(first.dataset.addr, '=' + snippet); }
+  }
+  closeFxPanel();
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+function escapeAttr(s) { return escapeHtml(s).replace(/'/g, '&#39;'); }
+
+function renderModelPicker() {
+  const rail = $('#modelsRail');
+  rail.innerHTML = '';
+  excelModels.forEach(model => {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'model-card';
+    card.setAttribute('aria-pressed', String(state.model && state.model.id === model.id));
+    card.innerHTML = '<div class="mc-top"><span class="mc-file">' + escapeHtml(model.fileName) + '</span><span class="mc-badge">' + escapeHtml(model.badge) + '</span></div>' +
+      '<div class="mc-body"><h3>' + escapeHtml(model.title) + '</h3><p>' + escapeHtml(model.desc) + '</p></div>';
+    card.addEventListener('click', () => {
+      $$('.model-card', rail).forEach(c => c.setAttribute('aria-pressed', 'false'));
+      card.setAttribute('aria-pressed', 'true');
+      loadModel(model).catch(showLoadError);
+      document.getElementById('workbook').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+    rail.appendChild(card);
+  });
+}
+
+function showLoadError(err) {
+  console.error(err);
+  $('#gridWrap').innerHTML = '<div class="wb-error">Couldn&rsquo;t load the workbook engine.<br><span style="text-transform:none;letter-spacing:0">' + escapeHtml(err && err.message ? err.message : String(err)) + '</span></div>';
+  $('#wbSectionSmall').textContent = 'Failed to load';
+}
+
+$('#gridWrap').addEventListener('mousedown', e => {
+  const pick = activeFormulaTarget();
+  if (!pick) return;
+  const td = e.target.closest('td[data-addr]');
+  if (!td) return;
+  e.preventDefault();
+  const anchor = td.dataset.addr;
+  let current = anchor;
+  paintPickRange(anchor, current);
+  const onMove = ev => {
+    const el = document.elementFromPoint(ev.clientX, ev.clientY);
+    const t = el && el.closest ? el.closest('td[data-addr]') : null;
+    if (t && $('#gridWrap').contains(t) && t.dataset.addr !== current) {
+      current = t.dataset.addr;
+      paintPickRange(anchor, current);
+    }
+  };
+  const onUp = () => {
+    document.removeEventListener('mousemove', onMove);
+    document.removeEventListener('mouseup', onUp);
+    clearPickRange();
+    insertReferenceInto(pick, refTokenFor(anchor, current));
+    state.lastPickAt = Date.now();
+  };
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
+});
+$('#gridWrap').addEventListener('click', e => {
+  if (Date.now() - state.lastPickAt < 250) return;
+  const td = e.target.closest('td[data-addr]');
+  if (!td) return;
+  if (td.querySelector('.cell-editor')) return;
+  selectCell(state.activeSheet, td.dataset.addr, true);
+});
+$('#gridWrap').addEventListener('dblclick', e => {
+  const td = e.target.closest('td[data-addr]');
+  if (!td || !state.editMode) return;
+  startCellEdit(td.dataset.addr, null);
+});
+
+document.addEventListener('keydown', e => {
+  const target = e.target;
+  const inInput = target && (target.closest('.cell-editor') || target.id === 'formulaInput');
+  if (inInput) {
+    if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) { e.preventDefault(); target.blur(); saveWorkbook(); }
+    return;
+  }
+  const mod = e.ctrlKey || e.metaKey;
+  if (mod && (e.key === 'z' || e.key === 'Z')) { e.preventDefault(); undoRedo(e.shiftKey ? 'redo' : 'undo'); return; }
+  if (mod && (e.key === 'y' || e.key === 'Y')) { e.preventDefault(); undoRedo('redo'); return; }
+  if (mod && (e.key === 's' || e.key === 'S')) { e.preventDefault(); saveWorkbook(); return; }
+  const gw = $('#gridWrap');
+  if (target !== gw) return;
+  if (!state.activeSheet) return;
+  if (e.key === 'F2') { if (state.editMode && state.selected) { e.preventDefault(); startCellEdit(state.selected.addr, null); } return; }
+  if (e.key === 'Delete' || e.key === 'Backspace') { if (state.editMode && state.selected) { e.preventDefault(); clearSelectedCell(); } return; }
+  if (e.key === 'Enter') { e.preventDefault(); moveSelection(e.shiftKey ? -1 : 1, 0); return; }
+  if (e.key === 'Tab') { e.preventDefault(); moveSelection(0, e.shiftKey ? -1 : 1); return; }
+  if (e.key === 'ArrowUp') { e.preventDefault(); moveSelection(-1, 0); return; }
+  if (e.key === 'ArrowDown') { e.preventDefault(); moveSelection(1, 0); return; }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); moveSelection(0, -1); return; }
+  if (e.key === 'ArrowRight') { e.preventDefault(); moveSelection(0, 1); return; }
+  if (e.key === 'Escape') { state.selected = null; state.editingAddr = null; $$('#gridWrap td.sel').forEach(t => t.classList.remove('sel')); updateFormulaBar(); return; }
+  if (state.editMode && state.selected && e.key.length === 1 && !mod && !e.altKey) {
+    e.preventDefault();
+    startCellEdit(state.selected.addr, e.key);
+  }
+});
+
+$('#formulaInput').addEventListener('keydown', e => {
+  e.stopPropagation();
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    if (state.selected) commitEdit(state.selected.sheet, state.selected.addr, e.target.value);
+    e.target.blur();
+    $('#gridWrap').focus({ preventScroll: true });
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    updateFormulaBar();
+    e.target.blur();
+    $('#gridWrap').focus({ preventScroll: true });
+  }
+});
+$('#formulaInput').addEventListener('blur', e => {
+  if (state.selected && state.editMode) {
+    const current = cellEditString(state.selected.sheet, state.selected.addr);
+    if (e.target.value !== current) {
+      const ok = commitEdit(state.selected.sheet, state.selected.addr, e.target.value);
+      if (!ok) {
+        e.target.classList.add('fb-invalid');
+        setTimeout(() => e.target.classList.remove('fb-invalid'), 900);
+      }
+    }
+  }
+});
+
+$('#formulaInput').addEventListener('blur', updatePickCursor);
+$('#formulaInput').addEventListener('input', e => {
+  const editor = document.querySelector('.cell-editor');
+  if (editor && editor.value !== e.target.value) editor.value = e.target.value;
+  updatePickCursor();
+});
+$('#formulaInput').addEventListener('focus', updatePickCursor);
+
+$('#fxBtn').addEventListener('click', () => {
+  if ($('#fxPanel').hidden) openFxPanel(); else closeFxPanel();
+});
+$('#fxSearch').addEventListener('input', e => renderFxList(e.target.value));
+$('#fxSearch').addEventListener('keydown', e => {
+  e.stopPropagation();
+  if (e.key === 'Escape') { closeFxPanel(); const gw = $('#gridWrap'); if (gw) gw.focus({ preventScroll: true }); }
+  else if (e.key === 'Enter') { const first = $('#fxList .fx-item'); if (first) insertFunction(first.dataset.fn); }
+});
+$('#fxList').addEventListener('click', e => {
+  const item = e.target.closest('.fx-item');
+  if (item) insertFunction(item.dataset.fn);
+});
+document.addEventListener('mousedown', e => {
+  if (!$('#fxPanel').hidden && !e.target.closest('#fxPanel') && !e.target.closest('#fxBtn')) closeFxPanel();
+});
+
+$('#resetBtn').addEventListener('click', () => {
+  if (state.model) loadModel(state.model).catch(showLoadError);
+});
+$('#saveBtn').addEventListener('click', () => { saveWorkbook(); });
+$('#modeToggle').addEventListener('click', () => {
+  state.editMode = !state.editMode;
+  updateModeUI();
+});
+$$('.scenario button').forEach(b => b.addEventListener('click', () => { if (state.hf) setScenario(Number(b.dataset.scenario)); }));
+
+const menuToggle = document.getElementById('menuToggle');
+const mainNav = document.getElementById('mainNav');
+menuToggle.addEventListener('click', () => {
+  const open = mainNav.classList.toggle('open');
+  menuToggle.setAttribute('aria-expanded', String(open));
+  menuToggle.textContent = open ? '×' : '↗';
+});
+mainNav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => {
+  mainNav.classList.remove('open');
+  menuToggle.setAttribute('aria-expanded', 'false');
+  menuToggle.textContent = '↗';
+}));
+
+const backTop = document.querySelector('.back-top');
+window.addEventListener('scroll', () => backTop.classList.toggle('show', window.scrollY > 550), { passive: true });
+document.getElementById('year').textContent = new Date().getFullYear();
+
+renderModelPicker();
+loadModel(excelModels[0]).then(() => {
+  $$('.model-card').forEach((c, i) => c.setAttribute('aria-pressed', String(i === 0)));
+}).catch(showLoadError);
+</script>
+</body>
+</html>
