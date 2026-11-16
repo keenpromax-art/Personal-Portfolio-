@@ -63,19 +63,16 @@
   <div class="shell">
     <div class="block-head">
       <h2>Selected coverage</h2>
-      <div class="folio"><b>SC</b> / Eight names, three live to click</div>
+      <div class="folio"><b>SC</b> / Five names, three live to click</div>
     </div>
     <p class="lede">Every entry below is real. Three are live right now; the rest are repos or in-browser demonstrations. Click any line for the full file.</p>
     <div class="screen-row">
-      <div class="count-note">Showing <b><span id="visibleCount">8</span> / 8</b></div>
+      <div class="count-note">Showing <b><span id="visibleCount">5</span> / 5</b></div>
       <div class="filter-list" aria-label="Screen by sector">
         <button class="filter active" data-filter="all">All</button>
         <button class="filter" data-filter="github">GitHub</button>
         <button class="filter" data-filter="website">Websites</button>
-        <button class="filter" data-filter="colab">Colab</button>
         <button class="filter" data-filter="python">Python</button>
-        <button class="filter" data-filter="pyrogets">Pyrogets</button>
-        <button class="filter" data-filter="excel">Excel</button>
       </div>
     </div>
     <div class="coverage" id="coverageList"></div>
@@ -230,10 +227,7 @@ const projects = [
   { id: 2, title: "IDTS", category: "python", desc: "Python-based system updated recently.", catLabel: "Automation / Python", tech: "Python · Updated 19 hours ago" },
   { id: 3, title: "Nexus-Chat", category: "website", desc: "HTML chat interface built last week.", catLabel: "Chat / Website", tech: "HTML · Updated last week", image: "nexus-chat", url: "https://nexus-chat-473.pages.dev/", longDesc: "Nexus Chat is an AI chat interface that lets you start conversations with topics from your personal library. Built with HTML, it features a dark, focused interface with topic cards for quick access to your knowledge base — from macroeconomics to hypothesis testing and market fluctuations. The message input at the bottom lets you chat with Nexus directly, with topic navigation and mastery tracking." },
   { id: 4, title: "Bullion-Board", category: "github", desc: "A Bloomberg-style NSE terminal — live quotes, F&O breadth, technicals, historical returns, a macro deck and AI reads. 209 F&O names scanned top/bottom every session. Live now.", catLabel: "Finance / Terminal", tech: "TypeScript · NSE · F&O", image: "bullion-board", url: "https://bullion-board.vercel.app/", longDesc: "Bullion-Board is a Bloomberg-style web trading terminal for Indian equities — a 4-panel quant workspace running 86 analytics desks: technicals (RSI/ADX/Sharpe/max drawdown), live NSE option chains with Greeks, PCR and max pain, historical returns with growth-of-₹100 and underwater curves, a macro deck with global markets, company dossier, quant screener, option chain, pairs trade workbench, sentiment desk and an embedded conversational AI analyst per desk. Real-time data pipelines for Indian equities, a touch-first mobile companion (Bullion Droid), and 93+ functions in the directory. Live at bullion-board.vercel.app." },
-  { id: 5, title: "Neural Net Explorer", category: "colab", desc: "Interactive Google Colab notebook visualizing neural network training in real time.", catLabel: "Notebook / Colab", tech: "Colab · Python · Matplotlib" },
-  { id: 6, title: "E-Commerce Storefront", category: "website", desc: "Responsive e-commerce website with working cart and checkout flow.", catLabel: "Brand / Website", tech: "UI / UX · Development" },
   { id: 10, title: "Portfolio Website", category: "website", desc: "This very portfolio — a single-page note, set in Spectral and Archivo.", catLabel: "Website", tech: "HTML · CSS · JS" },
-  { id: 11, title: "Apollo Hospitals Model", category: "excel", desc: "Scenario-driven NSE equity model — revenue build, WACC, DCF, SOTP. Every formula recalculates live in the browser.", catLabel: "Excel", tech: "DCF · SOTP", link: "excel.html" },
   { id: 12, title: "SAR — Equity Research", category: "website", desc: "Enter an NSE or US ticker — SAR builds a valuation, reviews the financials, and exports a research PDF, three-statement XLS model, and a model-consistent AI note. Live now.", catLabel: "Finance / Web App", tech: "Equity Research · PDF · XLS", image: "sar-research", url: "https://sar-378070319461.asia-south1.run.app/", longDesc: "SAR is an equity-research desk in a browser tab. Type any NSE or US ticker and it builds the whole picture — blended target price, market cap, P/E, EV/EBITDA, 52-week range, one-year price chart — then exports three artifacts from the same run: a research PDF, a three-statement XLS model, and a model-consistent AI note. The live specimen plate updates as you type with NSE and NASDAQ coverage; a three-leg output section (PDF / XLS / AI) sits below the fold. Live at sar-378070319461.asia-south1.run.app." }
 ];
 
