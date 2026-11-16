@@ -237,7 +237,30 @@ section.block{padding-block:clamp(44px,6vw,88px);border-bottom:1px solid var(--l
   .endnote-cta{justify-self:stretch}
   .endnote-cta .button{width:100%;justify-content:center}
 }
+/* ===== Print — the note on paper ===== */
+@page{margin:16mm 14mm}
+@media print{
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{background:#fff;color:#1c1a16;font-size:11pt;line-height:1.45;overflow-x:visible;scrollbar-width:auto}
+  :focus-visible{outline:0}
+  header.site,.skip-link,.menu-toggle,.back-top,.convo-pop,.project-modal,.filter-list,.count-note,.resume-view,.resume-actions,.resume-fine,.endnote-cta,.button{display:none!important}
+  section.block,.endnote{background:#fff!important;color:#1c1a16!important;border-bottom:1px solid #d8d6cc;padding-block:8mm}
+  .block-head{border-top:2px solid #1c1a16!important;break-after:avoid}
+  .block-head h2,.endnote h2{color:#1c1a16!important}
+  .endnote .block-head{border-top-color:#1c1a16!important}
+  .endnote,.endnote h2,.endnote p,.leg strong{color:#1c1a16!important}
+  .endnote p,.endnote .folio,.endnote .micro,.leg span,.fineprint,.fineprint a,.leg,.endnote-legs{color:#3c3a34!important;border-color:#d8d6cc!important}
+  .endnote h2 em,.block-head .folio b,.section-index b{color:#a33327!important}
+  .endnote-head{border-top:0!important}
+  .endnote .block-head .endnote-folio,.endnote .block-head .endnote-folio b{color:#a33327!important}
+  .coverage-row,.history-row,.history-detail,.hd-list li,.tool-cell,.leg{break-inside:avoid}
+  .analyst,.endnote-grid,.resume-grid{grid-template-columns:1fr!important;gap:8mm!important}
+  .id-photo{max-width:56mm}
+  .resume-meta{color:#5c594f!important;border-top:1px solid #d8d6cc!important;padding-top:4mm}
+}
 @media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
+}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;scroll-behavior:auto!important;transition-duration:.01ms!important}
 }
 
