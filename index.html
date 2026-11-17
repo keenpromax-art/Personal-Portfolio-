@@ -24,6 +24,7 @@
     <nav class="nav" id="mainNav" aria-label="Main navigation">
       <a href="#works">Work</a>
       <a href="excel.html">Excel</a>
+      <a href="stocks.html">Stocks</a>
       <a class="cta-nav js-convo" href="#" aria-haspopup="true" aria-expanded="false">Start a conversation</a>
     </nav>
     <button class="menu-toggle" id="menuToggle" aria-label="Open navigation" aria-expanded="false">≡</button>
@@ -63,11 +64,11 @@
   <div class="shell">
     <div class="block-head">
       <h2>Selected coverage</h2>
-      <div class="folio"><b>SC</b> / Six names, four live to click</div>
+      <div class="folio"><b>SC</b> / Seven names, five live to click</div>
     </div>
-    <p class="lede">Every entry below is real. Four are live right now; the rest are repos or in-browser demonstrations. Click any line for the full file.</p>
+    <p class="lede">Every entry below is real. Five are live right now; the rest are repos or in-browser demonstrations. Click any line for the full file.</p>
     <div class="screen-row">
-      <div class="count-note">Showing <b><span id="visibleCount">6</span> / 6</b></div>
+      <div class="count-note">Showing <b><span id="visibleCount">7</span> / 7</b></div>
       <div class="filter-list" aria-label="Screen by sector">
         <button class="filter active" data-filter="all">All</button>
         <button class="filter" data-filter="github">GitHub</button>
@@ -228,6 +229,7 @@ const projects = [
   { id: 3, title: "Nexus-Chat", category: "website", desc: "HTML chat interface built last week.", catLabel: "Chat / Website", tech: "HTML · Updated last week", image: "nexus-chat", url: "https://nexus-chat-473.pages.dev/", longDesc: "Nexus Chat is an AI chat interface that lets you start conversations with topics from your personal library. Built with HTML, it features a dark, focused interface with topic cards for quick access to your knowledge base — from macroeconomics to hypothesis testing and market fluctuations. The message input at the bottom lets you chat with Nexus directly, with topic navigation and mastery tracking." },
   { id: 4, title: "Bullion-Board", category: "github", desc: "A Bloomberg-style NSE terminal — live quotes, F&O breadth, technicals, historical returns, a macro deck and AI reads. 209 F&O names scanned top/bottom every session. Live now.", catLabel: "Finance / Terminal", tech: "TypeScript · NSE · F&O", image: "bullion-board", url: "https://bullion-board.vercel.app/", longDesc: "Bullion-Board is a Bloomberg-style web trading terminal for Indian equities — a 4-panel quant workspace running 86 analytics desks: technicals (RSI/ADX/Sharpe/max drawdown), live NSE option chains with Greeks, PCR and max pain, historical returns with growth-of-₹100 and underwater curves, a macro deck with global markets, company dossier, quant screener, option chain, pairs trade workbench, sentiment desk and an embedded conversational AI analyst per desk. Real-time data pipelines for Indian equities, a touch-first mobile companion (Bullion Droid), and 93+ functions in the directory. Live at bullion-board.vercel.app." },
   { id: 10, title: "Portfolio Website", category: "website", desc: "This very portfolio — a single-page note, set in Spectral and Archivo.", catLabel: "Website", tech: "HTML · CSS · JS", image: "portfolio" },
+  { id: 14, title: "Stock Tracker", category: "website", desc: "A 672-name NSE screen with technicals, returns, movers and a correlation desk — every figure derived from a live market sheet. Live now.", catLabel: "Finance / Coverage desk", tech: "HTML · JS · Derived data", link: "stocks.html", longDesc: "Stock Tracker turns a live equity sheet into a research desk. It resolves 868 rows down to 672 unique NSE tickers and three benchmarks, then derives the story from the numbers: a median RSI of 61.1, a median one-year return of -8.7%, 205 overbought names against 17 oversold, and 217 option-eligible counters. The full universe is searchable and re-rankable across price, weekly and annual return, RSI, CAGR, 52-week range and market cap, with seven-day change traces on every row. A movers panel ranks the one-year leaders and laggards and the CAGR standouts; a correlation desk puts TATAELXSI against the Nifty 50 with its 43.11% correlation, 51.67% slope, -3.299 Sharpe and two price/return charts. The page is built with plain HTML, CSS and JavaScript — no build step, no chart library, no external data call." },
   { id: 12, title: "SAR — Equity Research", category: "website", desc: "Enter an NSE or US ticker — SAR builds a valuation, reviews the financials, and exports a research PDF, three-statement XLS model, and a model-consistent AI note. Live now.", catLabel: "Finance / Web App", tech: "Equity Research · PDF · XLS", image: "sar-research", url: "https://sar-378070319461.asia-south1.run.app/", longDesc: "SAR is an equity-research desk in a browser tab. Type any NSE or US ticker and it builds the whole picture — blended target price, market cap, P/E, EV/EBITDA, 52-week range, one-year price chart — then exports three artifacts from the same run: a research PDF, a three-statement XLS model, and a model-consistent AI note. The live specimen plate updates as you type with NSE and NASDAQ coverage; a three-leg output section (PDF / XLS / AI) sits below the fold. Live at sar-378070319461.asia-south1.run.app." },
   { id: 13, title: "Ticker → DCF", category: "github", desc: "Type a ticker; get a formula-driven Excel DCF — 23 scenarios (Bear/Base/Bull × 20 macro regimes), WACC build and sensitivity tables. Open source.", catLabel: "Finance / Tool", tech: "Python · Streamlit · Excel", image: "dcf", url: "https://dcf-modelling.streamlit.app/", repo: "https://github.com/keenpromax-art/dcf-modelling", longDesc: "Ticker → DCF is a Streamlit front-end over a genuinely formula-driven workbook: enter a ticker and it pulls three years of financials, builds an 8-tab model (Dashboard · Assumptions · Macro_Scenarios · Operating_Model · WACC · DCF_Valuation · Scenario_Valuation · Sensitivity_Analysis) with 23 scenarios — Bear/Base/Bull plus 20 macro and company regimes — and serves the result as a live web app and a downloadable Excel file where every DCF input is editable, including the shipped audit and sensitivity blocks. Open source at github.com/keenpromax-art/dcf-modelling. Illustrative output, not investment advice." }
 ];
@@ -237,7 +239,7 @@ const filters = [...document.querySelectorAll(".filter")];
 const countEl = document.getElementById("visibleCount");
 const pad = n => String(n).padStart(2, "0");
 
-function isLive(p) { return /^https?:/i.test(p.url || p.link || ''); }
+function isLive(p) { return /^https?:/i.test(p.url || p.link || '') || /\.html$/i.test(p.link || ''); }
 
 function render(filter = "all") {
   grid.innerHTML = "";

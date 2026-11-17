@@ -10,12 +10,14 @@ The design language is **The Research Desk**: the site is set as an institutiona
 |------|---------|
 | `index.html` | The note — masthead, coverage table of projects (filterable, detail modal), analyst profile, capabilities, engagement endnote |
 | `excel.html` | Interactive Excel models — live in-browser recalculation |
+| `stocks.html` | Stock Tracker — NSE coverage desk derived from a live market sheet |
 
 ## File structure
 
 ```
 index.html        # The note (single page)
 excel.html        # Interactive Excel models (ExcelJS + HyperFormula)
+stocks.html       # Stock Tracker — coverage desk, movers, correlation workbench
 style.css         # The Research Desk design system
 PRODUCT.md        # Product truth (audience, positioning, constraints)
 DESIGN.md         # Design system (tokens, rules, components)
@@ -26,8 +28,16 @@ DESIGN.md         # Design system (tokens, rules, components)
 assets/
   excel/          # .xlsx models served publicly (downloadable by design)
   projects/       # Project thumbnails
+stocks_data.json  # Extracted, de-duplicated tracker universe + derived stats
+corr_data.json    # Extracted correlation series (rebased returns + prices)
 README.md         # This file
 ```
+
+## Stock Tracker (`stocks.html`)
+
+Reads the public Google Sheet (`STOCKS` and `Correlation` tabs), de-duplicates 868 rows into 672 unique tickers plus three indices, and derives the narrative, overview statistics and rankings in the browser. Both datasets are embedded inline in `stocks.html` so the page works from `file://` too; the two `.json` files are the same data kept as downloadable source. The page renders a searchable, re-rankable ledger (seven-day sparklines are pure inline SVG), a movers panel and two hand-built SVG charts — no chart library or runtime data fetch.
+
+To refresh the numbers, re-export the two tabs as CSV and re-run the parser, then replace the `const DATA = …;` and `const CORR = …;` assignments in `stocks.html` and update the two `.json` files.
 
 ## Excel models (`excel.html`)
 
