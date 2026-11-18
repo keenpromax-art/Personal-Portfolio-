@@ -203,7 +203,7 @@
     </div>
     <div class="ledger-foot">
       <span id="ledgerCount">—</span>
-      <button class="more" id="moreBtn" type="button">Load more names ↓</button>
+      <span>Full universe rendered in-page — nothing held back</span>
     </div>
   </div>
 </section>
@@ -365,8 +365,7 @@ const ledger = document.getElementById('ledger');
 const searchInput = document.getElementById('searchInput');
 const sortSelect = document.getElementById('sortSelect');
 const countEl = document.getElementById('ledgerCount');
-const moreBtn = document.getElementById('moreBtn');
-let quick = 'all', sortKey = 'price', shown = 50;
+let quick = 'all', sortKey = 'price';
 
 function filtered() {
   const q = searchInput.value.trim().toLowerCase();
@@ -412,23 +411,22 @@ function renderLedger() {
     '<span' + (c.k === 'name' ? '' : ' class="sortable' + (sortKey === c.k ? ' on' : '') + '" data-k="' + c.k + '"') + '>' +
     c.t + (sortKey === c.k && c.k !== 'name' ? ' ↓' : '') + '</span>'
   ).join('') + '</div>';
-  const body = rows.slice(0, shown).map(s =>
+  const body = rows.map(s =>
     '<div class="lrow" role="row">' + COLS.map(c => cell(s, c.k)).join('') + '</div>'
   ).join('');
   ledger.innerHTML = head + (rows.length ? body : '<div class="empty">No names match that screen.</div>');
-  countEl.textContent = 'Showing ' + Math.min(shown, rows.length) + ' / ' + rows.length + ' names · sorted by ' +
+  countEl.textContent = 'Showing all ' + rows.length + ' names · sorted by ' +
     (COLS.find(c => c.k === sortKey) || COLS[0]).t.toLowerCase();
-  moreBtn.style.display = rows.length > shown ? '' : 'none';
 }
 
-searchInput.addEventListener('input', () => { shown = 50; renderLedger(); });
-sortSelect.addEventListener('change', () => { sortKey = sortSelect.value; shown = 50; renderLedger(); });
+searchInput.addEventListener('input', () => { renderLedger(); });
+sortSelect.addEventListener('change', () => { sortKey = sortSelect.value; renderLedger(); });
 document.getElementById('quickFilters').addEventListener('click', e => {
   const b = e.target.closest('button[data-q]');
   if (!b) return;
   quick = b.dataset.q;
   document.querySelectorAll('#quickFilters .filter').forEach(x => x.classList.toggle('active', x === b));
-  shown = 50; renderLedger();
+  renderLedger();
 });
 ledger.addEventListener('click', e => {
   const h = e.target.closest('.sortable');
@@ -437,7 +435,6 @@ ledger.addEventListener('click', e => {
   sortSelect.value = [...sortSelect.options].some(o => o.value === sortKey) ? sortKey : 'price';
   renderLedger();
 });
-moreBtn.addEventListener('click', () => { shown += 50; renderLedger(); });
 renderLedger();
 
 /* ---------- Movers ---------- */
