@@ -68,10 +68,10 @@
       <iframe id="sheetFrame" src="assets/sheets/STOCKS.html" title="Stock Tracker — STOCKS sheet" loading="lazy"></iframe>
     </div>
     <div class="sheet-bar">
-      <span class="file" id="sheetFile">assets/sheets/STOCKS.html · 33 MB export · scroll inside the frame</span>
+      <span class="file" id="sheetFile">assets/sheets/STOCKS.html · 13 MB export · scroll inside the frame</span>
       <a id="openRaw" href="assets/sheets/STOCKS.html" target="_blank" rel="noopener">Open full sheet ↗</a>
     </div>
-    <p class="note-line">The STOCKS export carries roughly 7,000 inline sparkline charts, so it can take a few seconds to appear on a slow connection. If the frame stays blank, use <em>Open full sheet</em>. Quotes may be delayed up to 20 minutes; information is provided as-is, not trading advice.</p>
+    <p class="note-line">The STOCKS export carries roughly 7,000 inline sparkline charts with their coordinates trimmed to two decimals — visually identical to the sheet, but 13 MB instead of 34 MB — so it can take a few seconds to appear on a slow connection. If the frame stays blank, use <em>Open full sheet</em>. Quotes may be delayed up to 20 minutes; information is provided as-is, not trading advice.</p>
 
     <div class="cross">
       <a href="stocks.html">See the derived coverage desk →</a>
@@ -129,7 +129,7 @@
       frame.title = 'Stock Tracker — ' + tab.textContent.trim() + ' sheet';
       frame.src = tab.dataset.file;
       raw.href = tab.dataset.file;
-      fileLabel.textContent = tab.dataset.file + (tab.id === 'tab-stocks' ? ' · 33 MB export · scroll inside the frame' : ' · chart sheet · scroll inside the frame');
+      fileLabel.textContent = tab.dataset.file + (tab.id === 'tab-stocks' ? ' · 13 MB export · scroll inside the frame' : ' · chart sheet · scroll inside the frame');
     });
   });
 

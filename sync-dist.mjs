@@ -20,11 +20,8 @@ for (const file of files) {
   fs.copyFileSync(path.join(root, file), path.join(out, file));
 }
 
-fs.cpSync(path.join(root, 'assets'), path.join(out, 'assets'), {
-  recursive: true,
-  filter: (src) => !src.replace(/\\/g, '/').endsWith('assets/sheets/STOCKS.html'),
-});
+fs.cpSync(path.join(root, 'assets'), path.join(out, 'assets'), { recursive: true });
 
 const count = (dir) => fs.readdirSync(dir, { withFileTypes: true })
   .reduce((n, e) => n + (e.isDirectory() ? count(path.join(dir, e.name)) : 1), 0);
-console.log(`dist ready: ${count(out)} files (the 34 MB STOCKS export is excluded — Workers caps assets at 25 MiB)`);
+console.log(`dist ready: ${count(out)} files`);

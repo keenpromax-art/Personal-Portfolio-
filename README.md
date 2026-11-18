@@ -44,7 +44,7 @@ To refresh the numbers, re-export the two tabs as CSV and re-run the parser, the
 
 ## Source Sheets (`sheets.html`)
 
-The original Google Sheets HTML exports, served unchanged from `assets/sheets/`. `STOCKS.html` is a ~33 MB single table with ~7,000 inline sparkline SVGs; `Correlation.html` renders its two canvas charts using the JavaScript in `assets/sheets/resources/`. Keep the HTML files and the `resources/` folder together — the export links to that folder by relative path. The tabbed viewer embeds both exports in iframes and offers a direct link to each raw file, so the frozen headers, colour scales and charts appear exactly as in the workbook. Expect a slow first paint on the STOCKS tab over a mobile connection.
+The original Google Sheets HTML exports, served from `assets/sheets/`. `STOCKS.html` is a single table with ~7,000 inline sparkline SVGs; its path coordinates are rounded to two decimals, which leaves the rendering pixel-identical but cuts the file from 34 MB to 13 MB so it fits the Workers 25 MiB asset limit. `Correlation.html` renders its two canvas charts using the JavaScript in `assets/sheets/resources/`. Keep the HTML files and the `resources/` folder together — the export links to that folder by relative path. The tabbed viewer embeds both exports in iframes and offers a direct link to each raw file, so the frozen headers, colour scales and charts appear exactly as in the workbook. Expect a slow first paint on the STOCKS tab over a mobile connection.
 
 ## Excel models (`excel.html`)
 
@@ -84,7 +84,7 @@ npx wrangler login
 npx wrangler deploy
 ```
 
-`wrangler.jsonc` targets the `portfolio` worker. Its build step runs `node sync-dist.mjs`, which copies the site into `dist/` before upload; `html_handling: "auto-trailing-slash"` keeps clean URLs (`/stocks` → `stocks.html`, `/sheets` → `sheets.html`). The sync excludes the 34 MB `assets/sheets/STOCKS.html`: Workers static assets cap an individual file at 25 MiB, so that export cannot be uploaded. To restore the STOCKS tab on the worker, host that file in R2 and point the iframe at its public URL, or trim the export below 25 MiB. `Correlation.html` and the `resources/` folder are small enough and deploy normally.
+`wrangler.jsonc` targets the `portfolio` worker. Its build step runs `node sync-dist.mjs`, which copies the site into `dist/` before upload; `html_handling: "auto-trailing-slash"` keeps clean URLs (`/stocks` → `stocks.html`, `/sheets` → `sheets.html`). Both workbook tabs and the `resources/` folder are included: the STOCKS export is rounded to 2-decimal SVG coordinates (13 MB) specifically to stay under Workers' 25 MiB per-file cap.
 
 ## License
 
