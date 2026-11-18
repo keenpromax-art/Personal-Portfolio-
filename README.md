@@ -38,7 +38,7 @@ README.md         # This file
 
 ## Stock Tracker (`stocks.html`)
 
-Reads the public Google Sheet (`STOCKS` and `Correlation` tabs), de-duplicates 868 rows into 672 unique tickers plus three indices, and derives the narrative, overview statistics and rankings in the browser. Both datasets are embedded inline in `stocks.html` so the page works from `file://` too; the two `.json` files are the same data kept as downloadable source. The page renders a searchable, re-rankable ledger (seven-day sparklines are pure inline SVG), a movers panel and two hand-built SVG charts — no chart library or runtime data fetch.
+Reads the public Google Sheet (`STOCKS` and `Correlation` tabs), de-duplicates 868 rows into 672 unique tickers plus three indices, and derives the narrative, overview statistics and rankings in the browser. All 75 source columns are embedded verbatim per ticker; the ledger renders every one of them (horizontally scrollable, every header sortable) alongside a seven-day sparkline. Both datasets are embedded inline in `stocks.html` so the page works from `file://` too; the two `.json` files are the same data kept as downloadable source. The page also has a movers panel and two hand-built SVG charts — no chart library or runtime data fetch.
 
 To refresh the numbers, re-export the two tabs as CSV and re-run the parser, then replace the `const DATA = …;` and `const CORR = …;` assignments in `stocks.html` and update the two `.json` files.
 
