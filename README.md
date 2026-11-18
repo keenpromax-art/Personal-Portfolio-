@@ -75,6 +75,17 @@ python -m http.server 8080
 
 Then open http://localhost:8080/. Deploying to GitHub Pages works as-is from the repo root.
 
+## Deploy to the Cloudflare Worker
+
+The live site at `https://portfolio.keenvictor.workers.dev` is a Workers static-assets deployment, not GitHub Pages — pushing to GitHub does **not** update it. From this folder:
+
+```
+npx wrangler login
+npx wrangler deploy
+```
+
+`wrangler.jsonc` targets the `portfolio` worker. Its build step runs `node sync-dist.mjs`, which copies the site into `dist/` before upload; `html_handling: "auto-trailing-slash"` keeps clean URLs (`/stocks` → `stocks.html`, `/sheets` → `sheets.html`). The sync excludes the 34 MB `assets/sheets/STOCKS.html`: Workers static assets cap an individual file at 25 MiB, so that export cannot be uploaded. To restore the STOCKS tab on the worker, host that file in R2 and point the iframe at its public URL, or trim the export below 25 MiB. `Correlation.html` and the `resources/` folder are small enough and deploy normally.
+
 ## License
 
 MIT — feel free to use as a template for your own portfolio.
