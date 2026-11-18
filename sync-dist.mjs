@@ -10,11 +10,7 @@ fs.mkdirSync(out, { recursive: true });
 const files = [
   'index.html',
   'excel.html',
-  'stocks.html',
-  'sheets.html',
   'style.css',
-  'stocks_data.json',
-  'corr_data.json',
 ];
 for (const file of files) {
   fs.copyFileSync(path.join(root, file), path.join(out, file));

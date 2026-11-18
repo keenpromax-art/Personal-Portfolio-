@@ -1,6 +1,6 @@
 # Keen Victor — Portfolio
 
-A two-page portfolio built with plain HTML/CSS/JS — no build step. Deploys to GitHub Pages.
+A two-page portfolio built with plain HTML/CSS/JS — no build step. Deploys to a Cloudflare Worker.
 
 The design language is **The Research Desk**: the site is set as an institutional equity research note — nameplate masthead, house call, coverage table of deployed work, fine print at the foot. See `PRODUCT.md` for product truth and `DESIGN.md` for the design system. Sites are meant to be served over HTTP (e.g. `python -m http.server`); the Excel model viewer fetches the `.xlsx` from disk, which `file://` blocks.
 
@@ -10,16 +10,12 @@ The design language is **The Research Desk**: the site is set as an institutiona
 |------|---------|
 | `index.html` | The note — masthead, coverage table of projects (filterable, detail modal), analyst profile, capabilities, engagement endnote |
 | `excel.html` | Interactive Excel models — live in-browser recalculation |
-| `stocks.html` | Stock Tracker — NSE coverage desk derived from a live market sheet |
-| `sheets.html` | Source Sheets — the two workbook tabs as verbatim Google Sheets exports |
 
 ## File structure
 
 ```
 index.html        # The note (single page)
 excel.html        # Interactive Excel models (ExcelJS + HyperFormula)
-stocks.html       # Stock Tracker — coverage desk, movers, correlation workbench
-sheets.html       # Source Sheets — tabbed viewer for the verbatim exports
 style.css         # The Research Desk design system
 PRODUCT.md        # Product truth (audience, positioning, constraints)
 DESIGN.md         # Design system (tokens, rules, components)
@@ -30,21 +26,8 @@ DESIGN.md         # Design system (tokens, rules, components)
 assets/
   excel/          # .xlsx models served publicly (downloadable by design)
   projects/       # Project thumbnails
-  sheets/         # Verbatim sheet exports + resources/ (sheet.css, chart JS)
-stocks_data.json  # Extracted, de-duplicated tracker universe + derived stats
-corr_data.json    # Extracted correlation series (rebased returns + prices)
 README.md         # This file
 ```
-
-## Stock Tracker (`stocks.html`)
-
-Reads the public Google Sheet (`STOCKS` and `Correlation` tabs), de-duplicates 868 rows into 672 unique tickers plus three indices, and derives the narrative, overview statistics and rankings in the browser. All 75 source columns are embedded verbatim per ticker; the ledger renders every one of them (horizontally scrollable, every header sortable) alongside a seven-day sparkline. Both datasets are embedded inline in `stocks.html` so the page works from `file://` too; the two `.json` files are the same data kept as downloadable source. The page also has a movers panel and two hand-built SVG charts — no chart library or runtime data fetch.
-
-To refresh the numbers, re-export the two tabs as CSV and re-run the parser, then replace the `const DATA = …;` and `const CORR = …;` assignments in `stocks.html` and update the two `.json` files.
-
-## Source Sheets (`sheets.html`)
-
-The original Google Sheets HTML exports, served from `assets/sheets/`. `STOCKS.html` is a single table with ~7,000 inline sparkline SVGs; its path coordinates are rounded to two decimals, which leaves the rendering pixel-identical but cuts the file from 34 MB to 13 MB so it fits the Workers 25 MiB asset limit. `Correlation.html` renders its two canvas charts using the JavaScript in `assets/sheets/resources/`. Keep the HTML files and the `resources/` folder together — the export links to that folder by relative path. The tabbed viewer embeds both exports in iframes and offers a direct link to each raw file, so the frozen headers, colour scales and charts appear exactly as in the workbook. Expect a slow first paint on the STOCKS tab over a mobile connection.
 
 ## Excel models (`excel.html`)
 
@@ -84,7 +67,7 @@ npx wrangler login
 npx wrangler deploy
 ```
 
-`wrangler.jsonc` targets the `portfolio` worker. Its build step runs `node sync-dist.mjs`, which copies the site into `dist/` before upload; `html_handling: "auto-trailing-slash"` keeps clean URLs (`/stocks` → `stocks.html`, `/sheets` → `sheets.html`). Both workbook tabs and the `resources/` folder are included: the STOCKS export is rounded to 2-decimal SVG coordinates (13 MB) specifically to stay under Workers' 25 MiB per-file cap.
+`wrangler.jsonc` targets the `portfolio` worker. Its build step runs `node sync-dist.mjs`, which copies the site into `dist/` before upload; `html_handling: "auto-trailing-slash"` keeps clean URLs (`/excel` → `excel.html`). The Stock Analyzer lives on Google Sheets and is linked from the coverage table, not hosted here.
 
 ## License
 
